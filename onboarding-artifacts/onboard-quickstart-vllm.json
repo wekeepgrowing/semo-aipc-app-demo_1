@@ -1,0 +1,72 @@
+{
+  "sourceLog": "/Users/hj/workspace/semo-ai-app/onboarding-artifacts/onboard-quickstart-vllm.log",
+  "generatedAt": "2026-03-04T07:58:22.857Z",
+  "totalLines": 158,
+  "stepCount": 2,
+  "steps": [
+    {
+      "stepId": "step-01",
+      "prompt": "Model/auth provider",
+      "type": "select",
+      "options": [
+        "OpenAI (Codex OAuth + API key)",
+        "Anthropic",
+        "Chutes",
+        "vLLM",
+        "MiniMax",
+        "Moonshot AI (Kimi K2.5)",
+        "Google",
+        "xAI (Grok)",
+        "Mistral AI",
+        "Volcano Engine",
+        "BytePlus",
+        "OpenRouter",
+        "Kilo Gateway",
+        "Qwen",
+        "Z.AI",
+        "Qianfan",
+        "Copilot",
+        "Vercel AI Gateway"
+      ],
+      "defaultValue": "",
+      "validations": [],
+      "rawContext": [
+        "Model/auth provider",
+        "● OpenAI (Codex OAuth + API key)",
+        "○ Anthropic",
+        "○ Chutes",
+        "○ vLLM",
+        "○ MiniMax",
+        "○ Moonshot AI (Kimi K2.5)",
+        "○ Google",
+        "○ xAI (Grok)",
+        "○ Mistral AI",
+        "○ Volcano Engine",
+        "○ BytePlus",
+        "○ OpenRouter",
+        "○ Kilo Gateway",
+        "○ Qwen",
+        "○ Z.AI",
+        "○ Qianfan",
+        "○ Copilot",
+        "○ Vercel AI Gateway"
+      ],
+      "sourceLine": 16
+    },
+    {
+      "stepId": "step-02",
+      "prompt": "Model/auth provider",
+      "type": "input",
+      "options": [],
+      "defaultValue": "",
+      "validations": [],
+      "rawContext": [
+        "Model/auth provider",
+        "vLLM",
+        "Setup cancelled."
+      ],
+      "sourceLine": 156
+    }
+  ],
+  "errors": []
+}

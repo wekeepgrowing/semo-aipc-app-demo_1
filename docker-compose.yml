@@ -1,0 +1,19 @@
+services:
+  openclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openclaw-our-os:dev
+    container_name: openclaw-our-os
+    restart: unless-stopped
+    init: true
+    ports:
+      - "18789:18789"
+    environment:
+      # Required: our OS system metrics source
+      OUR_OS_METRICS_BASE_URL: "http://host.docker.internal:19090"
+      OUR_OS_METRICS_PATH: "/api/v1/system/metrics"
+      OUR_OS_METRICS_AUTH_MODE: "none"
+    volumes:
+      - ./data:/data
+      - ./data/linuxbrew:/home/linuxbrew

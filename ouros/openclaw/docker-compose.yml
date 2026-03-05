@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+  app_proxy:
+    environment:
+      APP_HOST: openclaw_gateway_1
+      APP_PORT: 18789
+
+  gateway:
+    image: ghcr.io/your-org/openclaw-our-os:2026.3.2@sha256:REPLACE_ME
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      OUR_OS_METRICS_BASE_URL: ${OUR_OS_METRICS_BASE_URL}
+      OUR_OS_METRICS_PATH: ${OUR_OS_METRICS_PATH:-/api/v1/system/metrics}
+      OUR_OS_METRICS_AUTH_MODE: ${OUR_OS_METRICS_AUTH_MODE:-none}
+      OUR_OS_METRICS_TOKEN: ${OUR_OS_METRICS_TOKEN:-}
+      OUR_OS_METRICS_TOKEN_FILE: ${OUR_OS_METRICS_TOKEN_FILE:-}
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
+      - ${APP_DATA_DIR}/data/linuxbrew:/home/linuxbrew

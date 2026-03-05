@@ -1,0 +1,92 @@
+Script started on 2026-03-04 07:54:26+00:00 [COMMAND="openclaw onboard --flow quickstart --accept-risk --skip-channels --skip-skills --skip-daemon --skip-ui --skip-health --mode local --gateway-port 18790" TERM="xterm" TTY="/dev/pts/0" COLUMNS="80" LINES="24"]
+
+[1m[91m🦞 OpenClaw[39m[22m [93m2026.3.2[39m [31m(85377a2)[39m
+   [31mIf it works, it's automation; if it breaks, it's a "learning opportunity."[39m
+
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+██░▄▄▄░██░▄▄░██░▄▄▄██░▀██░██░▄▄▀██░████░▄▄▀██░███░██
+██░███░██░▀▀░██░▄▄▄██░█░█░██░█████░████░▀▀░██░█░█░██
+██░▀▀▀░██░█████░▀▀▀██░██▄░██░▀▀▄██░▀▀░█░██░██▄▀▄▀▄██
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+                  🦞 OPENCLAW 🦞                    
+ 
+[90m┌[39m  [1m[91mOpenClaw onboarding[39m[22m
+[90m│[39m
+[32m◇[39m  [0m[1m[91mQuickStart[39m[22m[0m [90m─────────────────────────╮[39m
+[90m│[39m                                      [90m│[39m
+[90m│[39m  [2mGateway port: 18789[22m                 [90m│[39m
+[90m│[39m  [2mGateway bind: Loopback (127.0.0.1)[22m  [90m│[39m
+[90m│[39m  [2mGateway auth: Token (default)[22m       [90m│[39m
+[90m│[39m  [2mTailscale exposure: Off[22m             [90m│[39m
+[90m│[39m  [2mDirect to chat channels.[22m            [90m│[39m
+[90m│[39m                                      [90m│[39m
+[90m├──────────────────────────────────────╯[39m
+[?25l[90m│[39m
+[36m◆[39m  [91mModel/auth provider[39m
+[36m│[39m  [32m●[39m OpenAI [2m([31mCodex OAuth + API key[39m)[22m
+[36m│[39m  [2m○[22m [2mAnthropic[22m
+[36m│[39m  [2m○[22m [2mChutes[22m
+[36m│[39m  [2m○[22m [2mvLLM[22m
+[36m│[39m  [2m○[22m [2mMiniMax[22m
+[36m│[39m  [2m○[22m [2mMoonshot AI (Kimi K2.5)[22m
+[36m│[39m  [2m○[22m [2mGoogle[22m
+[36m│[39m  [2m○[22m [2mxAI (Grok)[22m
+[36m│[39m  [2m○[22m [2mMistral AI[22m
+[36m│[39m  [2m○[22m [2mVolcano Engine[22m
+[36m│[39m  [2m○[22m [2mBytePlus[22m
+[36m│[39m  [2m○[22m [2mOpenRouter[22m
+[36m│[39m  [2m○[22m [2mKilo Gateway[22m
+[36m│[39m  [2m○[22m [2mQwen[22m
+[36m│[39m  [2m○[22m [2mZ.AI[22m
+[36m│[39m  [2m○[22m [2mQianfan[22m
+[36m│[39m  [2m○[22m [2mCopilot[22m
+[36m│[39m  [2m○[22m [2mVercel AI Gateway[22m
+[36m│[39m  [2m...[22m
+[36m└[39m
+[999D[22A[2B[J[36m│[39m  [2m○[22m [2mOpenAI[22m
+[36m│[39m  [32m●[39m Anthropic [2m([31msetup-token + API key[39m)[22m
+[36m│[39m  [2m○[22m [2mChutes[22m
+[36m│[39m  [2m○[22m [2mvLLM[22m
+[36m│[39m  [2m○[22m [2mMiniMax[22m
+[36m│[39m  [2m○[22m [2mMoonshot AI (Kimi K2.5)[22m
+[36m│[39m  [2m○[22m [2mGoogle[22m
+[36m│[39m  [2m○[22m [2mxAI (Grok)[22m
+[36m│[39m  [2m○[22m [2mMistral AI[22m
+[36m│[39m  [2m○[22m [2mVolcano Engine[22m
+[36m│[39m  [2m○[22m [2mBytePlus[22m
+[36m│[39m  [2m○[22m [2mOpenRouter[22m
+[36m│[39m  [2m○[22m [2mKilo Gateway[22m
+[36m│[39m  [2m○[22m [2mQwen[22m
+[36m│[39m  [2m○[22m [2mZ.AI[22m
+[36m│[39m  [2m○[22m [2mQianfan[22m
+[36m│[39m  [2m○[22m [2mCopilot[22m
+[36m│[39m  [2m○[22m [2mVercel AI Gateway[22m
+[36m│[39m  [2m...[22m
+[36m└[39m
+[999D[22A[2B[J[36m│[39m  [32m●[39m OpenAI [2m([31mCodex OAuth + API key[39m)[22m
+[36m│[39m  [2m○[22m [2mAnthropic[22m
+[36m│[39m  [2m○[22m [2mChutes[22m
+[36m│[39m  [2m○[22m [2mvLLM[22m
+[36m│[39m  [2m○[22m [2mMiniMax[22m
+[36m│[39m  [2m○[22m [2mMoonshot AI (Kimi K2.5)[22m
+[36m│[39m  [2m○[22m [2mGoogle[22m
+[36m│[39m  [2m○[22m [2mxAI (Grok)[22m
+[36m│[39m  [2m○[22m [2mMistral AI[22m
+[36m│[39m  [2m○[22m [2mVolcano Engine[22m
+[36m│[39m  [2m○[22m [2mBytePlus[22m
+[36m│[39m  [2m○[22m [2mOpenRouter[22m
+[36m│[39m  [2m○[22m [2mKilo Gateway[22m
+[36m│[39m  [2m○[22m [2mQwen[22m
+[36m│[39m  [2m○[22m [2mZ.AI[22m
+[36m│[39m  [2m○[22m [2mQianfan[22m
+[36m│[39m  [2m○[22m [2mCopilot[22m
+[36m│[39m  [2m○[22m [2mVercel AI Gateway[22m
+[36m│[39m  [2m...[22m
+[36m└[39m
+[999D[22A[1B[J[31m■[39m  [91mModel/auth provider[39m
+[90m│[39m  [9m[2mOpenAI[22m[29m
+[90m│[39m
+[?25h[90m└[39m  [31m[1m[91mSetup cancelled.[31m[22m[39m
+
+[0m[?25h[?1000l[?1002l[?1003l[?1006l[?2004l[0m[?25h[?1000l[?1002l[?1003l[?1006l[?2004l
+Script done on 2026-03-04 07:55:28+00:00 [COMMAND_EXIT_CODE="1"]

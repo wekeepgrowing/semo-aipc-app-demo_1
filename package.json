@@ -1,0 +1,22 @@
+{
+  "name": "openclaw-our-os",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs",
+    "build:ui": "npm --prefix ui run build",
+    "dev:ui": "npm --prefix ui run dev",
+    "dev:docker-ui": "bash scripts/dev/docker-ui-dev.sh",
+    "dev:docker-up": "bash scripts/dev/docker-compose-dev.sh up",
+    "dev:docker-down": "bash scripts/dev/docker-compose-dev.sh down",
+    "dev:docker-logs": "bash scripts/dev/docker-compose-dev.sh logs",
+    "onboarding:capture": "bash scripts/onboarding/capture-onboarding-log.sh",
+    "onboarding:parse": "node scripts/onboarding/parse-onboarding-log.mjs"
+  },
+  "dependencies": {
+    "mime-types": "^2.1.35",
+    "node-pty": "^1.0.0",
+    "ws": "^8.18.0"
+  }
+}

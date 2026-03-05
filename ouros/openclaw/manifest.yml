@@ -1,0 +1,22 @@
+manifestVersion: 1
+id: openclaw
+name: OpenClaw
+tagline: Custom UI-first OpenClaw package for Our OS
+category: ai
+version: "2026.3.2"
+port: 18789
+path: ""
+description: >-
+  OpenClaw packaged for Our OS with a custom UI gateway.
+
+  The default OpenClaw GUI is blocked in production routing.
+  A custom UI handles onboarding and operational views through
+  the UI API namespace and OpenClaw gateway proxy namespace.
+
+developer: Our OS Team
+website: https://openclaw.ai
+dependencies: []
+repo: https://github.com/your-org/openclaw-our-os
+support: https://github.com/your-org/openclaw-our-os/issues
+gallery: []
+releaseNotes: ""
