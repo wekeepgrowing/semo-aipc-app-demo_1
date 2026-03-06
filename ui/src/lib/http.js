@@ -12,14 +12,14 @@ export async function fetchApiJson(url, init) {
   try {
     res = await fetch(url, init);
   } catch {
-    const error = new Error("백엔드에 연결할 수 없습니다. Docker 백엔드가 실행 중인지 확인해 주세요.");
+    const error = new Error("백엔드에 연결하지 못했으니 Docker 백엔드가 실행 중인지 확인해 주세요");
     error.code = "network_error";
     throw error;
   }
 
   const raw = await res.text();
   if (!raw) {
-    const error = new Error(`백엔드가 빈 응답을 반환했습니다 (HTTP ${res.status}).`);
+    const error = new Error(`백엔드가 빈 응답을 반환했어요 (HTTP ${res.status})`);
     error.code = "empty_response";
     error.status = res.status;
     throw error;
@@ -29,7 +29,7 @@ export async function fetchApiJson(url, init) {
   try {
     payload = JSON.parse(raw);
   } catch {
-    const error = new Error(`백엔드 응답(JSON)을 해석할 수 없습니다 (HTTP ${res.status}).`);
+    const error = new Error(`백엔드 응답(JSON)을 해석할 수 없어요 (HTTP ${res.status})`);
     error.code = "invalid_json_response";
     error.status = res.status;
     throw error;

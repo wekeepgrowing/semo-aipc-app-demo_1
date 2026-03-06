@@ -41,6 +41,7 @@ RUN npm ci --omit=dev && chown -R node:node /data /app
 # Runtime app files
 COPY --chown=node:node server.cjs /app/server.cjs
 COPY --chown=node:node lib /app/lib
+COPY --chown=node:node assets /app/assets
 COPY --from=ui-builder --chown=node:node /app/ui/dist /app/ui/dist
 
 RUN echo "node ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers

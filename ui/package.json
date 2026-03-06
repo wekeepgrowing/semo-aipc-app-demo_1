@@ -5,18 +5,29 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "lint": "eslint src --ext .js,.jsx",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@xyflow/react": "^12.8.5",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
     "lucide-react": "^0.544.0",
     "react": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.1",
-    "vite": "^7.3.1"
+    "eslint": "^9.38.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^3.2.4"
   }
 }

@@ -6,10 +6,30 @@ ACTION="${1:-}"
 TAIL_LINES="${2:-80}"
 IMAGE_NAME="openclaw-our-os:dev"
 CONTAINER_NAME="openclaw-our-os"
+DO_BUILD="${DO_BUILD:-1}"
 
 fail() {
   echo "[docker-dev] $*" >&2
   exit 1
+}
+
+resolve_host_path() {
+  local raw="$1"
+  if [[ -z "${raw}" ]]; then
+    echo "${ROOT_DIR}/data"
+    return 0
+  fi
+
+  if [[ "${raw}" == "~"* ]]; then
+    raw="${HOME}${raw#"~"}"
+  fi
+
+  if [[ "${raw}" == /* ]]; then
+    echo "${raw}"
+    return 0
+  fi
+
+  echo "${ROOT_DIR}/${raw#./}"
 }
 
 docker_cmd() {
@@ -75,9 +95,23 @@ compose_run() {
 }
 
 fallback_up() {
-  mkdir -p "${ROOT_DIR}/data" "${ROOT_DIR}/data/linuxbrew"
+  local data_volume_raw="${OPENCLAW_DATA_PATH:-./data}"
+  local linuxbrew_volume_raw="${OPENCLAW_LINUXBREW_PATH:-${data_volume_raw%/}/linuxbrew}"
+  local data_volume
+  local linuxbrew_volume
 
-  if ! docker_cmd image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
+  data_volume="$(resolve_host_path "${data_volume_raw}")"
+  linuxbrew_volume="$(resolve_host_path "${linuxbrew_volume_raw}")"
+
+  echo "[docker-dev] data volume: ${data_volume} -> /data"
+  echo "[docker-dev] linuxbrew volume: ${linuxbrew_volume} -> /home/linuxbrew"
+
+  mkdir -p "${data_volume}" "${linuxbrew_volume}"
+
+  if [[ "${DO_BUILD}" == "1" ]]; then
+    echo "[docker-dev] Building ${IMAGE_NAME}..."
+    docker_cmd build -t "${IMAGE_NAME}" -f "${ROOT_DIR}/Dockerfile" "${ROOT_DIR}"
+  elif ! docker_cmd image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
     echo "[docker-dev] Image not found. Building ${IMAGE_NAME}..."
     docker_cmd build -t "${IMAGE_NAME}" -f "${ROOT_DIR}/Dockerfile" "${ROOT_DIR}"
   fi
@@ -91,8 +125,8 @@ fallback_up() {
     -e OUR_OS_METRICS_BASE_URL="http://host.docker.internal:19090" \
     -e OUR_OS_METRICS_PATH="/api/v1/system/metrics" \
     -e OUR_OS_METRICS_AUTH_MODE="none" \
-    -v "${ROOT_DIR}/data:/data" \
-    -v "${ROOT_DIR}/data/linuxbrew:/home/linuxbrew" \
+    -v "${data_volume}:/data" \
+    -v "${linuxbrew_volume}:/home/linuxbrew" \
     "${IMAGE_NAME}" >/dev/null
 }
 
@@ -120,7 +154,11 @@ case "${ACTION}" in
       echo "[docker-dev] Compose plugin not found. Using direct docker run fallback."
       fallback_up
     else
-      compose_run "${COMPOSE_MODE}" up -d --pull never openclaw
+      if [[ "${DO_BUILD}" == "1" ]]; then
+        compose_run "${COMPOSE_MODE}" up -d --build --pull never openclaw
+      else
+        compose_run "${COMPOSE_MODE}" up -d --pull never openclaw
+      fi
     fi
     ;;
   down)

@@ -91,11 +91,25 @@ npm run dev:docker-down   # stop backend
 ### Notes
 
 - In Docker development mode, do not use `npm run dev` as the primary loop.
-- Data is persisted at `./data` (mounted to `/data` in container).
+- Data is persisted at `${OPENCLAW_DATA_PATH:-./data}` (mounted to `/data` in container).
+- Linuxbrew data path is `${OPENCLAW_LINUXBREW_PATH:-./data/linuxbrew}`.
+- To use a different local path:
+
+```bash
+cp .env.example .env
+# edit .env values if needed
+export OPENCLAW_DATA_PATH=/absolute/path/to/openclaw-data
+export OPENCLAW_LINUXBREW_PATH=/absolute/path/to/openclaw-data/linuxbrew
+```
+
+- For real app packaging, use OS-managed app data path (not fixed `./data`).
+  - [`ouros/openclaw/docker-compose.yml`](/Users/hj/workspace/semo-ai-app/ouros/openclaw/docker-compose.yml) already uses:
+    - `${APP_DATA_DIR}/data:/data`
+    - `${APP_DATA_DIR}/data/linuxbrew:/home/linuxbrew`
 - If onboarding does not appear due to stale config, reset local app data:
 
 ```bash
-rm -rf ./data
+rm -rf "${OPENCLAW_DATA_PATH:-./data}"
 ```
 
 ### Troubleshooting

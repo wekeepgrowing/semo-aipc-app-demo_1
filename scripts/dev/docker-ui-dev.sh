@@ -16,6 +16,10 @@ fail() {
 cd "${ROOT_DIR}"
 
 echo "[dev:docker-ui] Starting Docker backend (service: openclaw)..."
+if [[ -z "${DO_BUILD+x}" ]]; then
+  export DO_BUILD=0
+  echo "[dev:docker-ui] Reusing existing Docker image by default. Set DO_BUILD=1 to force rebuild."
+fi
 bash "${DOCKER_HELPER}" up
 
 echo "[dev:docker-ui] Waiting for backend readiness: ${HEALTH_URL}"

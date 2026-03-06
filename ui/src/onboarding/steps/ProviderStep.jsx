@@ -19,7 +19,7 @@ export default function ProviderStep({ providers, selectedProviderId, onSelect }
   return (
     <div className="ov0-step">
       <div className="ov0-head">
-        <h2>어떤 AI 서비스를 사용하시나요?</h2>
+        <h2>어떤 AI 서비스를 쓰나요?</h2>
         <p>연결할 AI 서비스를 골라주세요</p>
       </div>
 

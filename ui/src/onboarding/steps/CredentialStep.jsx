@@ -23,15 +23,15 @@ function fieldAutoComplete(fieldId) {
 
 function providerHint(providerLabel) {
   const lower = String(providerLabel || "").toLowerCase();
-  if (lower.includes("openai")) return "OpenAI 공식 사이트 › API 설정 › 키 발급 메뉴에서 복사하세요.";
-  if (lower.includes("anthropic")) return "Anthropic Console › API Keys 메뉴에서 새 키를 발급해 복사하세요.";
-  if (lower.includes("google")) return "Google AI Studio › API keys 메뉴에서 키를 생성해 복사하세요.";
-  if (lower.includes("chutes")) return "Chutes 공식 사이트 › API Keys 메뉴에서 키 또는 코드를 확인하세요.";
-  if (lower.includes("xai")) return "xAI Console › API Keys 메뉴에서 새 키를 발급해 복사하세요.";
-  if (lower.includes("mistral")) return "Mistral Console › API Keys 메뉴에서 키를 생성해 복사하세요.";
-  if (lower.includes("openrouter")) return "OpenRouter 대시보드 › Keys 메뉴에서 키를 발급해 복사하세요.";
-  if (lower.includes("vercel")) return "Vercel AI Gateway › API Keys 메뉴에서 키를 발급해 복사하세요.";
-  return `${providerLabel} 공식 사이트 › API 설정 › 키 발급 메뉴에서 복사하세요.`;
+  if (lower.includes("openai")) return "OpenAI 공식 사이트 › API 설정 › 키 발급 메뉴에서 복사하세요";
+  if (lower.includes("anthropic")) return "Anthropic Console › API Keys 메뉴에서 새 키를 발급해 복사하세요";
+  if (lower.includes("google")) return "Google AI Studio › API keys 메뉴에서 키를 생성해 복사하세요";
+  if (lower.includes("chutes")) return "Chutes 공식 사이트 › API Keys 메뉴에서 키 또는 코드를 확인하세요";
+  if (lower.includes("xai")) return "xAI Console › API Keys 메뉴에서 새 키를 발급해 복사하세요";
+  if (lower.includes("mistral")) return "Mistral Console › API Keys 메뉴에서 키를 생성해 복사하세요";
+  if (lower.includes("openrouter")) return "OpenRouter 대시보드 › Keys 메뉴에서 키를 발급해 복사하세요";
+  if (lower.includes("vercel")) return "Vercel AI Gateway › API Keys 메뉴에서 키를 발급해 복사하세요";
+  return `${providerLabel} 공식 사이트 › API 설정 › 키 발급 메뉴에서 복사하세요`;
 }
 
 export default function CredentialStep({ providerLabel, method, credentials, onChange }) {
@@ -43,7 +43,7 @@ export default function CredentialStep({ providerLabel, method, credentials, onC
       <div className="ov0-head">
         <h2>API 키를 입력해 주세요</h2>
         <p>
-          <strong>{providerLabel}</strong> 대시보드에서 발급받은 키를 입력해 주세요.
+          <strong>{providerLabel}</strong> 대시보드에서 발급받은 키를 입력해 주세요
         </p>
       </div>
 

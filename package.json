@@ -5,12 +5,17 @@
   "scripts": {
     "start": "node server.cjs",
     "dev": "node server.cjs",
+    "lint": "npm --prefix ui run lint",
+    "typecheck": "npm --prefix ui run typecheck",
+    "test": "npm run test:ux-writing && npm --prefix ui run test",
+    "test:ux-writing": "node scripts/check-ux-writing.cjs",
     "build:ui": "npm --prefix ui run build",
     "dev:ui": "npm --prefix ui run dev",
     "dev:docker-ui": "bash scripts/dev/docker-ui-dev.sh",
     "dev:docker-up": "bash scripts/dev/docker-compose-dev.sh up",
     "dev:docker-down": "bash scripts/dev/docker-compose-dev.sh down",
     "dev:docker-logs": "bash scripts/dev/docker-compose-dev.sh logs",
+    "dev:openclaw-test-profile": "node scripts/dev/create-openclaw-test-profile.mjs",
     "onboarding:capture": "bash scripts/onboarding/capture-onboarding-log.sh",
     "onboarding:parse": "node scripts/onboarding/parse-onboarding-log.mjs"
   },

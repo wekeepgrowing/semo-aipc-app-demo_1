@@ -15,5 +15,5 @@ services:
       OUR_OS_METRICS_PATH: "/api/v1/system/metrics"
       OUR_OS_METRICS_AUTH_MODE: "none"
     volumes:
-      - ./data:/data
-      - ./data/linuxbrew:/home/linuxbrew
+      - ${OPENCLAW_DATA_PATH:-./data}:/data
+      - ${OPENCLAW_LINUXBREW_PATH:-./data/linuxbrew}:/home/linuxbrew
