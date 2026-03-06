@@ -1,0 +1,362 @@
+{
+  "runs": {
+    "gw-8953af64-20da-461e-b36d-0e94d25a9e4e": {
+      "id": "gw-8953af64-20da-461e-b36d-0e94d25a9e4e",
+      "title": "happy path run",
+      "titleCustomized": false,
+      "prompt": "happy path run",
+      "status": "completed",
+      "sourceAction": "chat",
+      "sourceType": "gateway",
+      "createdAt": 1772775317759,
+      "updatedAt": 1772775342166,
+      "step": 1,
+      "steps": [],
+      "tasks": [],
+      "logs": [
+        {
+          "id": "d9cdb8c0-c03f-437a-aa09-2195823ad772",
+          "ts": 1772775318010,
+          "level": "info",
+          "message": "Mock completed: happy path run"
+        },
+        {
+          "id": "75cd3474-5cff-4d75-be8c-2d0ce3add0f0",
+          "ts": 1772775321161,
+          "level": "user",
+          "message": "follow after toggles off"
+        },
+        {
+          "id": "ed495af2-6eae-4510-94d7-3a9d8c4b93b7",
+          "ts": 1772775342162,
+          "level": "user",
+          "message": "api follow same run"
+        }
+      ],
+      "usage": {
+        "runId": "gw-8953af64-20da-461e-b36d-0e94d25a9e4e",
+        "provider": "unknown",
+        "model": "unknown",
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0,
+        "costUsd": 0,
+        "ts": 1772775320966
+      },
+      "usecaseId": "",
+      "normalizedInput": null,
+      "wbs": null,
+      "pauseState": null,
+      "currentExecution": null,
+      "artifacts": null,
+      "executionFeatures": [
+        "ontology",
+        "self-improving-loop",
+        "proactive",
+        "find-skills"
+      ],
+      "executionFeaturesLockedAt": 1772775317761,
+      "executionFeaturesStatus": "enforced",
+      "executionFeaturesError": null,
+      "sessionKey": "agent:main:run:7c4728a3-672b-41d7-a257-6932c18794c7",
+      "sessionMode": "per_run"
+    },
+    "gw-3800b1bd-90c4-4c69-8206-59cbb595ff72": {
+      "id": "gw-3800b1bd-90c4-4c69-8206-59cbb595ff72",
+      "title": "follow after toggles off",
+      "titleCustomized": false,
+      "prompt": "follow after toggles off",
+      "status": "failed",
+      "sourceAction": "home_input",
+      "sourceType": "gateway",
+      "createdAt": 1772775321871,
+      "updatedAt": 1772775342166,
+      "step": 1,
+      "steps": [],
+      "tasks": [],
+      "logs": [],
+      "usage": null,
+      "usecaseId": "",
+      "normalizedInput": null,
+      "wbs": null,
+      "pauseState": null,
+      "currentExecution": null,
+      "artifacts": null,
+      "executionFeatures": [
+        "ontology",
+        "self-improving-loop",
+        "proactive",
+        "find-skills"
+      ],
+      "executionFeaturesLockedAt": 0,
+      "executionFeaturesStatus": "failed",
+      "executionFeaturesError": {
+        "code": "feature_unsupported",
+        "message": "feature not enabled: ontology",
+        "details": null
+      },
+      "sessionKey": "",
+      "sessionMode": "legacy_shared"
+    },
+    "gw-368f69c7-cbea-4da9-8d4c-066daf05ae7b": {
+      "id": "gw-368f69c7-cbea-4da9-8d4c-066daf05ae7b",
+      "title": "__missing__ create check",
+      "titleCustomized": false,
+      "prompt": "__missing__ create check",
+      "status": "failed",
+      "sourceAction": "chat",
+      "sourceType": "gateway",
+      "createdAt": 1772775323345,
+      "updatedAt": 1772775342166,
+      "step": 1,
+      "steps": [],
+      "tasks": [],
+      "logs": [],
+      "usage": null,
+      "usecaseId": "",
+      "normalizedInput": null,
+      "wbs": null,
+      "pauseState": null,
+      "currentExecution": null,
+      "artifacts": null,
+      "executionFeatures": [
+        "ontology",
+        "self-improving-loop",
+        "proactive",
+        "find-skills"
+      ],
+      "executionFeaturesLockedAt": 1772775323345,
+      "executionFeaturesStatus": "failed",
+      "executionFeaturesError": {
+        "code": "feature_confirmation_missing",
+        "message": "OpenClaw did not confirm execution feature enforcement",
+        "details": null
+      },
+      "sessionKey": "agent:main:run:e0f888a8-4c25-4b6d-ae75-e1b65b69f3dd",
+      "sessionMode": "per_run"
+    },
+    "gw-40a84b08-b60d-4945-abf5-d75e80130325": {
+      "id": "gw-40a84b08-b60d-4945-abf5-d75e80130325",
+      "title": "__mismatch__ create check",
+      "titleCustomized": false,
+      "prompt": "__mismatch__ create check",
+      "status": "failed",
+      "sourceAction": "chat",
+      "sourceType": "gateway",
+      "createdAt": 1772775323791,
+      "updatedAt": 1772775342167,
+      "step": 1,
+      "steps": [],
+      "tasks": [],
+      "logs": [],
+      "usage": null,
+      "usecaseId": "",
+      "normalizedInput": null,
+      "wbs": null,
+      "pauseState": null,
+      "currentExecution": null,
+      "artifacts": null,
+      "executionFeatures": [
+        "ontology",
+        "self-improving-loop",
+        "proactive",
+        "find-skills"
+      ],
+      "executionFeaturesLockedAt": 1772775323791,
+      "executionFeaturesStatus": "failed",
+      "executionFeaturesError": {
+        "code": "feature_state_mismatch",
+        "message": "mock mismatch",
+        "details": {
+          "requested": [
+            "ontology",
+            "self-improving-loop",
+            "proactive",
+            "find-skills"
+          ],
+          "confirmed": [
+            "ontology",
+            "self-improving-loop",
+            "find-skills"
+          ]
+        }
+      },
+      "sessionKey": "agent:main:run:dca9b09b-314d-4fa1-acc2-b65c6e52f6f3",
+      "sessionMode": "per_run"
+    },
+    "gw-ae55045e-8658-4fb0-affa-f86fb3785cf9": {
+      "id": "gw-ae55045e-8658-4fb0-affa-f86fb3785cf9",
+      "title": "api follow same run",
+      "titleCustomized": false,
+      "prompt": "api follow same run",
+      "status": "failed",
+      "sourceAction": "home_input",
+      "sourceType": "gateway",
+      "createdAt": 1772775342167,
+      "updatedAt": 1772775342167,
+      "step": 1,
+      "steps": [],
+      "tasks": [],
+      "logs": [],
+      "usage": null,
+      "usecaseId": "",
+      "normalizedInput": null,
+      "wbs": null,
+      "pauseState": null,
+      "currentExecution": null,
+      "artifacts": null,
+      "executionFeatures": [
+        "ontology",
+        "self-improving-loop",
+        "proactive",
+        "find-skills"
+      ],
+      "executionFeaturesLockedAt": null,
+      "executionFeaturesStatus": "failed",
+      "executionFeaturesError": {
+        "code": "feature_unsupported",
+        "message": "feature not enabled: ontology",
+        "details": null
+      },
+      "sessionKey": "",
+      "sessionMode": "legacy_shared"
+    }
+  },
+  "skills": {
+    "research-agent": {
+      "id": "research-agent",
+      "name": "리서치 에이전트",
+      "description": "웹 조사 및 자료 수집 자동화",
+      "enabled": false
+    },
+    "summary-agent": {
+      "id": "summary-agent",
+      "name": "요약 에이전트",
+      "description": "긴 문서를 핵심 요점으로 요약",
+      "enabled": false
+    },
+    "planner-agent": {
+      "id": "planner-agent",
+      "name": "플래너 에이전트",
+      "description": "작업 계획 수립 및 단계 분해",
+      "enabled": false
+    },
+    "monitor-agent": {
+      "id": "monitor-agent",
+      "name": "모니터 에이전트",
+      "description": "실행 상태 모니터링 및 알림",
+      "enabled": false
+    },
+    "writer-agent": {
+      "id": "writer-agent",
+      "name": "작성 에이전트",
+      "description": "보고서/문서 초안 작성",
+      "enabled": false
+    },
+    "review-agent": {
+      "id": "review-agent",
+      "name": "리뷰 에이전트",
+      "description": "결과물 품질 점검 및 피드백",
+      "enabled": false
+    },
+    "evidence-research-bundle": {
+      "id": "evidence-research-bundle",
+      "name": "evidence-research-bundle",
+      "description": "",
+      "enabled": true
+    },
+    "brief-writer-bundle": {
+      "id": "brief-writer-bundle",
+      "name": "brief-writer-bundle",
+      "description": "",
+      "enabled": true
+    },
+    "doc-finder-bundle": {
+      "id": "doc-finder-bundle",
+      "name": "doc-finder-bundle",
+      "description": "",
+      "enabled": true
+    },
+    "actionizer-bundle": {
+      "id": "actionizer-bundle",
+      "name": "actionizer-bundle",
+      "description": "",
+      "enabled": true
+    }
+  },
+  "defaults": {
+    "defaultModel": null
+  },
+  "features": {
+    "knowledgeMap": false,
+    "memoryAutoImprove": false,
+    "proactiveCheck": false,
+    "skillFinder": false
+  },
+  "featureStatus": {
+    "knowledgeMap": {
+      "source": "api",
+      "supported": true,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 1772775341776,
+      "errorCode": null,
+      "lastError": null,
+      "details": {
+        "canonicalId": "ontology",
+        "gateway": {
+          "id": "ontology",
+          "supported": true,
+          "enabled": false
+        }
+      }
+    },
+    "memoryAutoImprove": {
+      "source": "api",
+      "supported": true,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 1772775341802,
+      "errorCode": null,
+      "lastError": null,
+      "details": {
+        "canonicalId": "self-improving-loop",
+        "gateway": {
+          "id": "self-improving-loop",
+          "supported": true,
+          "enabled": false
+        }
+      }
+    },
+    "proactiveCheck": {
+      "source": "api",
+      "supported": true,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 1772775341826,
+      "errorCode": null,
+      "lastError": null,
+      "details": {
+        "canonicalId": "proactive",
+        "gateway": {
+          "id": "proactive",
+          "supported": true,
+          "enabled": false
+        }
+      }
+    },
+    "skillFinder": {
+      "source": "api",
+      "supported": true,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 1772775341852,
+      "errorCode": null,
+      "lastError": null,
+      "details": {
+        "canonicalId": "find-skills",
+        "gateway": {
+          "id": "find-skills",
+          "supported": true,
+          "enabled": false
+        }
+      }
+    }
+  }
+}

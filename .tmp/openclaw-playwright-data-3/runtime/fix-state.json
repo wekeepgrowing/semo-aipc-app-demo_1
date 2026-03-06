@@ -1,0 +1,19 @@
+{
+  "advancedBypass": {
+    "disableDeviceAuth": false,
+    "allowHostHeaderOriginFallback": false,
+    "enabledAt": 0,
+    "expiresAt": 0
+  },
+  "lastClose": {
+    "code": 1006,
+    "reason": "",
+    "at": 1772775255583
+  },
+  "lastRecover": {
+    "at": 0,
+    "status": "idle",
+    "category": "unknown",
+    "summaryKo": ""
+  }
+}

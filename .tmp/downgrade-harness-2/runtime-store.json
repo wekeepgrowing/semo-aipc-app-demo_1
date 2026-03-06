@@ -1,0 +1,135 @@
+{
+  "runs": {
+    "run-missing": {
+      "id": "run-missing",
+      "title": "downgrade create",
+      "titleCustomized": false,
+      "prompt": "downgrade create",
+      "status": "running",
+      "sourceAction": "chat",
+      "sourceType": "gateway",
+      "createdAt": 1772776866989,
+      "updatedAt": 1772776866989,
+      "step": 1,
+      "steps": [],
+      "tasks": [],
+      "logs": [
+        {
+          "id": "a8030357-3db1-469e-9d6b-f7080d0d9e96",
+          "ts": 1772776866989,
+          "level": "info",
+          "message": "실행 기능 확인을 받지 못해 일반 대화로 전환했습니다."
+        }
+      ],
+      "usage": null,
+      "usecaseId": "",
+      "normalizedInput": null,
+      "wbs": null,
+      "pauseState": null,
+      "currentExecution": null,
+      "artifacts": null,
+      "executionFeatures": [],
+      "executionFeaturesLockedAt": null,
+      "executionFeaturesStatus": "none",
+      "executionFeaturesError": null,
+      "executionFeaturesDowngradedAt": 1772776866989,
+      "executionFeaturesDowngradeReason": {
+        "code": "feature_confirmation_missing",
+        "message": "OpenClaw did not confirm execution feature enforcement",
+        "details": {
+          "requestedFeatures": [
+            "ontology"
+          ],
+          "receivedStatus": "locked"
+        }
+      },
+      "sessionKey": "agent:main:run:d3926174-94b7-4ceb-99b2-babfa29118e8",
+      "sessionMode": "per_run"
+    }
+  },
+  "skills": {
+    "research-agent": {
+      "id": "research-agent",
+      "name": "리서치 에이전트",
+      "description": "웹 조사 및 자료 수집 자동화",
+      "enabled": false
+    },
+    "summary-agent": {
+      "id": "summary-agent",
+      "name": "요약 에이전트",
+      "description": "긴 문서를 핵심 요점으로 요약",
+      "enabled": false
+    },
+    "planner-agent": {
+      "id": "planner-agent",
+      "name": "플래너 에이전트",
+      "description": "작업 계획 수립 및 단계 분해",
+      "enabled": false
+    },
+    "monitor-agent": {
+      "id": "monitor-agent",
+      "name": "모니터 에이전트",
+      "description": "실행 상태 모니터링 및 알림",
+      "enabled": false
+    },
+    "writer-agent": {
+      "id": "writer-agent",
+      "name": "작성 에이전트",
+      "description": "보고서/문서 초안 작성",
+      "enabled": false
+    },
+    "review-agent": {
+      "id": "review-agent",
+      "name": "리뷰 에이전트",
+      "description": "결과물 품질 점검 및 피드백",
+      "enabled": false
+    }
+  },
+  "defaults": {
+    "defaultModel": null
+  },
+  "features": {
+    "knowledgeMap": false,
+    "memoryAutoImprove": false,
+    "proactiveCheck": false,
+    "skillFinder": false
+  },
+  "featureStatus": {
+    "knowledgeMap": {
+      "source": "none",
+      "supported": null,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 0,
+      "errorCode": null,
+      "lastError": null,
+      "details": null
+    },
+    "memoryAutoImprove": {
+      "source": "none",
+      "supported": null,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 0,
+      "errorCode": null,
+      "lastError": null,
+      "details": null
+    },
+    "proactiveCheck": {
+      "source": "none",
+      "supported": null,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 0,
+      "errorCode": null,
+      "lastError": null,
+      "details": null
+    },
+    "skillFinder": {
+      "source": "none",
+      "supported": null,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 0,
+      "errorCode": null,
+      "lastError": null,
+      "details": null
+    }
+  }
+}

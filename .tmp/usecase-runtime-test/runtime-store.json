@@ -1,0 +1,1373 @@
+{
+  "runs": {
+    "cefb6c77-a782-4504-aead-20eb3a36509e": {
+      "id": "cefb6c77-a782-4504-aead-20eb3a36509e",
+      "title": "앱인토스 매출 조사",
+      "titleCustomized": false,
+      "isDraft": false,
+      "hasSubmittedPrompt": true,
+      "prompt": "앱인토스 매출 조사",
+      "status": "paused",
+      "sourceAction": "home_usecase",
+      "sourceType": "openclaw",
+      "createdAt": 1772808955147,
+      "updatedAt": 1772808958223,
+      "step": 4,
+      "steps": [
+        {
+          "index": 1,
+          "label": "범위 및 기준 확인",
+          "status": "completed"
+        },
+        {
+          "index": 2,
+          "label": "데이터 및 링크 수집",
+          "status": "completed"
+        },
+        {
+          "index": 3,
+          "label": "요약 및 비교",
+          "status": "completed"
+        },
+        {
+          "index": 4,
+          "label": "결과 승인 및 보고서 정리",
+          "status": "running"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "1cc22c1a-2f23-4b5d-87a6-abce9451f8b8",
+          "text": "사용자 요청 범위와 조사 기준 확정",
+          "title": "사용자 요청 범위와 조사 기준 확정",
+          "done": true,
+          "status": "completed",
+          "role": "Human",
+          "phaseId": "phase_scope",
+          "phaseTitle": "범위 및 기준 확인",
+          "assignee": "담당자 지정",
+          "assigneeType": "person",
+          "whyHuman": "입력된 자연어 요청을 기준으로 조사 범위를 확정해요",
+          "result": {
+            "capturedPrompt": "앱인토스 매출 조사",
+            "normalizedInput": {
+              "topic": "앱인토스 매출 조사",
+              "targets": [],
+              "outputFormat": "1p_brief",
+              "sourcePreference": [
+                "공식 문서",
+                "뉴스",
+                "리서치"
+              ]
+            },
+            "completedAt": 1772808955147
+          },
+          "review": null,
+          "comments": []
+        },
+        {
+          "id": "d540a91b-cde1-4fd5-bd75-1db74284202e",
+          "text": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+          "title": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+          "done": true,
+          "status": "completed",
+          "role": "AI",
+          "phaseId": "phase_collect",
+          "phaseTitle": "데이터 및 링크 수집",
+          "assignee": "AI 실행",
+          "assigneeType": "ai",
+          "whyHuman": "",
+          "result": {
+            "summary": "assistant reply from history",
+            "responseText": "assistant reply from history",
+            "gatewayRunId": "gateway-run-1",
+            "completedAt": 1772808955206
+          },
+          "review": null,
+          "comments": []
+        },
+        {
+          "id": "59d07b87-b911-456f-8509-6a1c67b3d7e3",
+          "text": "핵심 이슈 비교표 및 요약 작성",
+          "title": "핵심 이슈 비교표 및 요약 작성",
+          "done": true,
+          "status": "completed",
+          "role": "AI",
+          "phaseId": "phase_compare",
+          "phaseTitle": "요약 및 비교",
+          "assignee": "AI 실행",
+          "assigneeType": "ai",
+          "whyHuman": "",
+          "result": {
+            "summary": "assistant reply from history",
+            "responseText": "assistant reply from history",
+            "gatewayRunId": "gateway-run-1",
+            "completedAt": 1772808958218
+          },
+          "review": null,
+          "comments": []
+        },
+        {
+          "id": "d47b3c60-c13b-4083-a1c0-db5a9a1e9b1d",
+          "text": "정리된 리서치 결과 승인 및 보고서 확정",
+          "title": "정리된 리서치 결과 승인 및 보고서 확정",
+          "done": false,
+          "status": "paused",
+          "role": "Review Needed",
+          "phaseId": "phase_report",
+          "phaseTitle": "결과 승인 및 보고서 정리",
+          "assignee": "검토 필요/리뷰 요청",
+          "assigneeType": "ai",
+          "whyHuman": "최종 결과물 확정과 공유 전 승인이 필요해요",
+          "result": null,
+          "review": {
+            "status": "pending",
+            "comments": []
+          },
+          "comments": []
+        }
+      ],
+      "logs": [
+        {
+          "id": "675eef2d-97f5-4c45-92fe-650fc21f9c24",
+          "ts": 1772808955150,
+          "level": "info",
+          "message": "입력값 정규화 및 WBS(Depth 2) 생성을 완료했어요"
+        },
+        {
+          "id": "2dbbe5a6-1049-46b3-92b6-a89d3e2b1a1d",
+          "ts": 1772808955150,
+          "level": "info",
+          "message": "실행 탭으로 전환되어 OpenClaw 자동 실행을 시작해요"
+        },
+        {
+          "id": "2597443f-19be-448b-a02a-b2fdde41bb20",
+          "ts": 1772808955152,
+          "level": "info",
+          "message": "AI 실행 시작: 최신 근거 자료 수집 및 출처 신뢰도 검증"
+        },
+        {
+          "id": "cf2e67de-5a7f-42c4-9a76-e708775fb771",
+          "ts": 1772808955153,
+          "level": "info",
+          "message": "OpenClaw 요청 전송: 최신 근거 자료 수집 및 출처 신뢰도 검증"
+        },
+        {
+          "id": "d89f8ea6-dff5-44a9-9645-c03dc174c6cb",
+          "ts": 1772808955205,
+          "level": "info",
+          "message": "OpenClaw 이벤트 응답이 늦어서 history 기준으로 실행을 이어가요"
+        },
+        {
+          "id": "7fcecdf3-91ec-4848-a429-14712fcfb066",
+          "ts": 1772808955208,
+          "level": "info",
+          "message": "AI 실행 완료: 최신 근거 자료 수집 및 출처 신뢰도 검증"
+        },
+        {
+          "id": "96c02b77-dbc2-4c9d-926a-1665fe90302d",
+          "ts": 1772808955209,
+          "level": "info",
+          "message": "AI 실행 시작: 핵심 이슈 비교표 및 요약 작성"
+        },
+        {
+          "id": "219ccba8-5078-4080-b951-192eae848179",
+          "ts": 1772808955210,
+          "level": "info",
+          "message": "OpenClaw 요청 전송: 핵심 이슈 비교표 및 요약 작성"
+        },
+        {
+          "id": "f9e96242-df3d-45f2-9d25-c3d35fb4ffdf",
+          "ts": 1772808958216,
+          "level": "info",
+          "message": "OpenClaw 이벤트 응답이 늦어서 history 기준으로 실행을 이어가요"
+        },
+        {
+          "id": "f1e7680f-e9e8-42fa-8e16-2768b53c5fc8",
+          "ts": 1772808958220,
+          "level": "info",
+          "message": "AI 실행 완료: 핵심 이슈 비교표 및 요약 작성"
+        },
+        {
+          "id": "f96c9bba-687f-4c85-ac67-610be380fa76",
+          "ts": 1772808958223,
+          "level": "info",
+          "message": "Review Needed 단계 도달: 최종 결과물 확정과 공유 전 승인이 필요해요"
+        }
+      ],
+      "executionTranscript": [
+        {
+          "id": "3f4b9562-1495-4bf9-a361-0fce0e8cabb5",
+          "taskId": "1cc22c1a-2f23-4b5d-87a6-abce9451f8b8",
+          "phaseId": "phase_scope",
+          "role": "human",
+          "kind": "input",
+          "text": "앱인토스 매출 조사",
+          "ts": 1772808955147
+        },
+        {
+          "id": "2a38872d-5e8e-4cfd-8725-8eb897d91ec8",
+          "taskId": "1cc22c1a-2f23-4b5d-87a6-abce9451f8b8",
+          "phaseId": "phase_scope",
+          "role": "system",
+          "kind": "event",
+          "text": "범위 및 기준 확인 단계를 완료하고 웹 리서치 실행을 준비했어요",
+          "ts": 1772808955148
+        },
+        {
+          "id": "ecebf6ce-51c7-4e5e-8354-769140a9419a",
+          "taskId": "d540a91b-cde1-4fd5-bd75-1db74284202e",
+          "phaseId": "phase_collect",
+          "role": "system",
+          "kind": "event",
+          "text": "AI 실행 시작: 최신 근거 자료 수집 및 출처 신뢰도 검증",
+          "ts": 1772808955152
+        },
+        {
+          "id": "a71f4f9d-39fe-48c6-ab35-0630a6098fc6",
+          "taskId": "d540a91b-cde1-4fd5-bd75-1db74284202e",
+          "phaseId": "phase_collect",
+          "role": "ai",
+          "kind": "task_prompt",
+          "text": "당신은 SEMO 실행 탭의 유즈케이스 AI 실행기예요\n유즈케이스: 웹 리서치\n현재 태스크: 최신 근거 자료 수집 및 출처 신뢰도 검증\n\n[입력값]\n- 조사 주제: 앱인토스 매출 조사\n- 비교 대상: 미지정 (핵심 사례를 먼저 식별)\n- 출력 형식: 1p_brief\n- 신뢰 소스 선호: 공식 문서, 뉴스, 리서치\n\n[이미 완료된 태스크 결과]\n1. 사용자 요청 범위와 조사 기준 확정\n- 결과 없음 -\n\n[출력 지시]\n1) 웹 리서치가 필요하면 기본 web_search 대신 Tavily 검색 결과를 우선 사용하세요\n2) 최신 근거를 중심으로 정리하고 가능한 한 URL 출처를 포함하세요\n3) 핵심 요약, 매출/수익화 근거 표, 의사결정 시사점을 포함하세요\n4) 실행 가능한 액션 아이템을 목록으로 제시하세요\n5) 과장 없이 사실/추정은 구분해서 작성하세요",
+          "ts": 1772808955153
+        },
+        {
+          "id": "8e3b662f-9f7e-463d-b469-30153d597bad",
+          "taskId": "d540a91b-cde1-4fd5-bd75-1db74284202e",
+          "phaseId": "phase_collect",
+          "role": "system",
+          "kind": "event",
+          "text": "OpenClaw 이벤트 대신 history 응답을 동기화했어요",
+          "ts": 1772808955205
+        },
+        {
+          "id": "8a0ab705-8c2b-4b87-89f5-b9a58ba0197f",
+          "taskId": "d540a91b-cde1-4fd5-bd75-1db74284202e",
+          "phaseId": "phase_collect",
+          "role": "ai",
+          "kind": "task_response",
+          "text": "assistant reply from history",
+          "ts": 1772808955208
+        },
+        {
+          "id": "3aaab9f1-abb0-4639-b4b5-9e821226d913",
+          "taskId": "59d07b87-b911-456f-8509-6a1c67b3d7e3",
+          "phaseId": "phase_compare",
+          "role": "system",
+          "kind": "event",
+          "text": "AI 실행 시작: 핵심 이슈 비교표 및 요약 작성",
+          "ts": 1772808955210
+        },
+        {
+          "id": "96ea3fb5-5756-4d70-9717-0e52fa414334",
+          "taskId": "59d07b87-b911-456f-8509-6a1c67b3d7e3",
+          "phaseId": "phase_compare",
+          "role": "ai",
+          "kind": "task_prompt",
+          "text": "당신은 SEMO 실행 탭의 유즈케이스 AI 실행기예요\n유즈케이스: 웹 리서치\n현재 태스크: 핵심 이슈 비교표 및 요약 작성\n\n[입력값]\n- 조사 주제: 앱인토스 매출 조사\n- 비교 대상: 미지정 (핵심 사례를 먼저 식별)\n- 출력 형식: 1p_brief\n- 신뢰 소스 선호: 공식 문서, 뉴스, 리서치\n\n[이미 완료된 태스크 결과]\n1. 사용자 요청 범위와 조사 기준 확정\n- 결과 없음 -\n\n2. 최신 근거 자료 수집 및 출처 신뢰도 검증\nassistant reply from history\n\n[출력 지시]\n1) 웹 리서치가 필요하면 기본 web_search 대신 Tavily 검색 결과를 우선 사용하세요\n2) 최신 근거를 중심으로 정리하고 가능한 한 URL 출처를 포함하세요\n3) 핵심 요약, 매출/수익화 근거 표, 의사결정 시사점을 포함하세요\n4) 실행 가능한 액션 아이템을 목록으로 제시하세요\n5) 과장 없이 사실/추정은 구분해서 작성하세요",
+          "ts": 1772808955210
+        },
+        {
+          "id": "a5599bb4-6d1e-43f1-bbca-d70627ef9819",
+          "taskId": "59d07b87-b911-456f-8509-6a1c67b3d7e3",
+          "phaseId": "phase_compare",
+          "role": "system",
+          "kind": "event",
+          "text": "OpenClaw 이벤트 대신 history 응답을 동기화했어요",
+          "ts": 1772808958217
+        },
+        {
+          "id": "fb5c9754-3c1c-4f91-b7d4-17fbb70f2501",
+          "taskId": "59d07b87-b911-456f-8509-6a1c67b3d7e3",
+          "phaseId": "phase_compare",
+          "role": "ai",
+          "kind": "task_response",
+          "text": "assistant reply from history",
+          "ts": 1772808958220
+        },
+        {
+          "id": "46bd7993-6b0e-4109-8fee-042e6aa2d763",
+          "taskId": "d47b3c60-c13b-4083-a1c0-db5a9a1e9b1d",
+          "phaseId": "phase_report",
+          "role": "system",
+          "kind": "event",
+          "text": "Review Needed 단계 도달: 정리된 리서치 결과 승인 및 보고서 확정",
+          "ts": 1772808958223
+        }
+      ],
+      "usage": {
+        "runId": "cefb6c77-a782-4504-aead-20eb3a36509e",
+        "provider": "openclaw",
+        "model": "gateway-rpc",
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0,
+        "costUsd": 0,
+        "ts": 1772808958218
+      },
+      "usecaseId": "web_research",
+      "normalizedInput": {
+        "topic": "앱인토스 매출 조사",
+        "targets": [],
+        "outputFormat": "1p_brief",
+        "sourcePreference": [
+          "공식 문서",
+          "뉴스",
+          "리서치"
+        ]
+      },
+      "wbs": {
+        "depth": 2,
+        "phases": [
+          {
+            "id": "phase_scope",
+            "index": 1,
+            "title": "범위 및 기준 확인",
+            "role": "Human",
+            "tasks": [
+              {
+                "id": "1cc22c1a-2f23-4b5d-87a6-abce9451f8b8",
+                "text": "사용자 요청 범위와 조사 기준 확정",
+                "title": "사용자 요청 범위와 조사 기준 확정",
+                "done": true,
+                "status": "completed",
+                "role": "Human",
+                "phaseId": "phase_scope",
+                "phaseTitle": "범위 및 기준 확인",
+                "assignee": "담당자 지정",
+                "assigneeType": "person",
+                "whyHuman": "입력된 자연어 요청을 기준으로 조사 범위를 확정해요",
+                "result": {
+                  "capturedPrompt": "앱인토스 매출 조사",
+                  "normalizedInput": {
+                    "topic": "앱인토스 매출 조사",
+                    "targets": [],
+                    "outputFormat": "1p_brief",
+                    "sourcePreference": [
+                      "공식 문서",
+                      "뉴스",
+                      "리서치"
+                    ]
+                  },
+                  "completedAt": 1772808955147
+                },
+                "review": null,
+                "comments": []
+              }
+            ]
+          },
+          {
+            "id": "phase_collect",
+            "index": 2,
+            "title": "데이터 및 링크 수집",
+            "role": "AI",
+            "tasks": [
+              {
+                "id": "d540a91b-cde1-4fd5-bd75-1db74284202e",
+                "text": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+                "title": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+                "done": true,
+                "status": "completed",
+                "role": "AI",
+                "phaseId": "phase_collect",
+                "phaseTitle": "데이터 및 링크 수집",
+                "assignee": "AI 실행",
+                "assigneeType": "ai",
+                "whyHuman": "",
+                "result": {
+                  "summary": "assistant reply from history",
+                  "responseText": "assistant reply from history",
+                  "gatewayRunId": "gateway-run-1",
+                  "completedAt": 1772808955206
+                },
+                "review": null,
+                "comments": []
+              }
+            ]
+          },
+          {
+            "id": "phase_compare",
+            "index": 3,
+            "title": "요약 및 비교",
+            "role": "AI",
+            "tasks": [
+              {
+                "id": "59d07b87-b911-456f-8509-6a1c67b3d7e3",
+                "text": "핵심 이슈 비교표 및 요약 작성",
+                "title": "핵심 이슈 비교표 및 요약 작성",
+                "done": true,
+                "status": "completed",
+                "role": "AI",
+                "phaseId": "phase_compare",
+                "phaseTitle": "요약 및 비교",
+                "assignee": "AI 실행",
+                "assigneeType": "ai",
+                "whyHuman": "",
+                "result": {
+                  "summary": "assistant reply from history",
+                  "responseText": "assistant reply from history",
+                  "gatewayRunId": "gateway-run-1",
+                  "completedAt": 1772808958218
+                },
+                "review": null,
+                "comments": []
+              }
+            ]
+          },
+          {
+            "id": "phase_report",
+            "index": 4,
+            "title": "결과 승인 및 보고서 정리",
+            "role": "Review Needed",
+            "tasks": [
+              {
+                "id": "d47b3c60-c13b-4083-a1c0-db5a9a1e9b1d",
+                "text": "정리된 리서치 결과 승인 및 보고서 확정",
+                "title": "정리된 리서치 결과 승인 및 보고서 확정",
+                "done": false,
+                "status": "paused",
+                "role": "Review Needed",
+                "phaseId": "phase_report",
+                "phaseTitle": "결과 승인 및 보고서 정리",
+                "assignee": "검토 필요/리뷰 요청",
+                "assigneeType": "ai",
+                "whyHuman": "최종 결과물 확정과 공유 전 승인이 필요해요",
+                "result": null,
+                "review": {
+                  "status": "pending",
+                  "comments": []
+                },
+                "comments": []
+              }
+            ]
+          }
+        ]
+      },
+      "pauseState": {
+        "reason": "review",
+        "taskId": "d47b3c60-c13b-4083-a1c0-db5a9a1e9b1d",
+        "whyHuman": "최종 결과물 확정과 공유 전 승인이 필요해요"
+      },
+      "currentExecution": null,
+      "artifacts": {
+        "usecaseId": "web_research",
+        "type": "brief",
+        "title": "웹 리서치 결과",
+        "sections": [
+          {
+            "taskId": "d540a91b-cde1-4fd5-bd75-1db74284202e",
+            "title": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+            "content": {
+              "summary": "assistant reply from history",
+              "responseText": "assistant reply from history"
+            },
+            "ts": 1772808955206
+          },
+          {
+            "taskId": "59d07b87-b911-456f-8509-6a1c67b3d7e3",
+            "title": "핵심 이슈 비교표 및 요약 작성",
+            "content": {
+              "summary": "assistant reply from history",
+              "responseText": "assistant reply from history"
+            },
+            "ts": 1772808958218
+          }
+        ],
+        "board": {
+          "items": [
+            {
+              "id": "roadmap-1",
+              "title": "핵심 후보를 좁히고 추가 검증 항목을 우선순위화해요",
+              "status": "todo"
+            }
+          ]
+        },
+        "exportable": true,
+        "updatedAt": 1772808958218,
+        "report": {
+          "status": "draft",
+          "title": "앱인토스 매출 조사",
+          "summary": "assistant reply from history",
+          "comparisonRows": [],
+          "recommendation": "assistant reply from history",
+          "sources": [],
+          "actions": [
+            "핵심 후보를 좁히고 추가 검증 항목을 우선순위화해요"
+          ],
+          "documentMarkdown": "assistant reply from history",
+          "generatedAt": 1772808955147,
+          "approvedAt": null
+        },
+        "roadmap": {
+          "direction": "LR",
+          "nodes": [
+            {
+              "id": "root",
+              "position": {
+                "x": 40,
+                "y": 180
+              },
+              "data": {
+                "label": "앱인토스 매출 조사",
+                "tone": "root"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-1",
+              "position": {
+                "x": 320,
+                "y": 40
+              },
+              "data": {
+                "label": "근거 수집",
+                "tone": "stage"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-1-action-1",
+              "position": {
+                "x": 620,
+                "y": 40
+              },
+              "data": {
+                "label": "핵심 후보를 좁히고 추가 검증 항목을 우선순위화해요",
+                "tone": "action"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-2",
+              "position": {
+                "x": 320,
+                "y": 210
+              },
+              "data": {
+                "label": "요약 및 비교",
+                "tone": "stage"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-2-action-1",
+              "position": {
+                "x": 620,
+                "y": 210
+              },
+              "data": {
+                "label": "요약 및 비교 후속 정리",
+                "tone": "action"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-3",
+              "position": {
+                "x": 320,
+                "y": 380
+              },
+              "data": {
+                "label": "실행 계획",
+                "tone": "stage"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-3-action-1",
+              "position": {
+                "x": 620,
+                "y": 380
+              },
+              "data": {
+                "label": "실행 계획 후속 정리",
+                "tone": "action"
+              },
+              "type": "default"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge-root-stage-1",
+              "source": "root",
+              "target": "stage-1",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-stage-1-stage-1-action-1",
+              "source": "stage-1",
+              "target": "stage-1-action-1",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-root-stage-2",
+              "source": "root",
+              "target": "stage-2",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-stage-2-stage-2-action-1",
+              "source": "stage-2",
+              "target": "stage-2-action-1",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-root-stage-3",
+              "source": "root",
+              "target": "stage-3",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-stage-3-stage-3-action-1",
+              "source": "stage-3",
+              "target": "stage-3-action-1",
+              "type": "smoothstep"
+            }
+          ]
+        },
+        "result": {
+          "title": "앱인토스 매출 조사",
+          "sources": [],
+          "comparison": [],
+          "brief": "assistant reply from history",
+          "actions": [
+            "핵심 후보를 좁히고 추가 검증 항목을 우선순위화해요"
+          ]
+        }
+      },
+      "originConversationId": "",
+      "executionFeatures": [],
+      "executionFeaturesLockedAt": 1772808955147,
+      "executionFeaturesStatus": "none",
+      "executionFeaturesError": null,
+      "executionFeaturesDowngradedAt": null,
+      "executionFeaturesDowngradeReason": null,
+      "sessionKey": "agent:main:run:631c0718-27ce-41a3-b64a-d76bde6e66ab",
+      "sessionMode": "per_run"
+    },
+    "d40751c5-8d76-43a1-a4a6-2c61c45457b3": {
+      "id": "d40751c5-8d76-43a1-a4a6-2c61c45457b3",
+      "title": "앱인토스 매출 조사 2",
+      "titleCustomized": false,
+      "isDraft": false,
+      "hasSubmittedPrompt": true,
+      "prompt": "앱인토스 매출 조사 2",
+      "status": "paused",
+      "sourceAction": "home_usecase",
+      "sourceType": "openclaw",
+      "createdAt": 1772808955212,
+      "updatedAt": 1772808958279,
+      "step": 4,
+      "steps": [
+        {
+          "index": 1,
+          "label": "범위 및 기준 확인",
+          "status": "completed"
+        },
+        {
+          "index": 2,
+          "label": "데이터 및 링크 수집",
+          "status": "completed"
+        },
+        {
+          "index": 3,
+          "label": "요약 및 비교",
+          "status": "completed"
+        },
+        {
+          "index": 4,
+          "label": "결과 승인 및 보고서 정리",
+          "status": "running"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "9f3001e8-5bf8-4dab-8445-1d2e3ae0439b",
+          "text": "사용자 요청 범위와 조사 기준 확정",
+          "title": "사용자 요청 범위와 조사 기준 확정",
+          "done": true,
+          "status": "completed",
+          "role": "Human",
+          "phaseId": "phase_scope",
+          "phaseTitle": "범위 및 기준 확인",
+          "assignee": "담당자 지정",
+          "assigneeType": "person",
+          "whyHuman": "입력된 자연어 요청을 기준으로 조사 범위를 확정해요",
+          "result": {
+            "capturedPrompt": "앱인토스 매출 조사 2",
+            "normalizedInput": {
+              "topic": "앱인토스 매출 조사 2",
+              "targets": [],
+              "outputFormat": "1p_brief",
+              "sourcePreference": [
+                "공식 문서",
+                "뉴스",
+                "리서치"
+              ]
+            },
+            "completedAt": 1772808955212
+          },
+          "review": null,
+          "comments": []
+        },
+        {
+          "id": "158df5fb-015f-4d55-814e-dcc2e2ba6e3c",
+          "text": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+          "title": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+          "done": true,
+          "status": "completed",
+          "role": "AI",
+          "phaseId": "phase_collect",
+          "phaseTitle": "데이터 및 링크 수집",
+          "assignee": "AI 실행",
+          "assigneeType": "ai",
+          "whyHuman": "",
+          "result": {
+            "summary": "completed event reply",
+            "responseText": "completed event reply",
+            "gatewayRunId": "gateway-run-2",
+            "completedAt": 1772808955267
+          },
+          "review": null,
+          "comments": []
+        },
+        {
+          "id": "06fa89cd-70d6-4ced-8f6d-ab9fbe246cdf",
+          "text": "핵심 이슈 비교표 및 요약 작성",
+          "title": "핵심 이슈 비교표 및 요약 작성",
+          "done": true,
+          "status": "completed",
+          "role": "AI",
+          "phaseId": "phase_compare",
+          "phaseTitle": "요약 및 비교",
+          "assignee": "AI 실행",
+          "assigneeType": "ai",
+          "whyHuman": "",
+          "result": {
+            "summary": "assistant reply from history",
+            "responseText": "assistant reply from history",
+            "gatewayRunId": "gateway-run-1",
+            "completedAt": 1772808958275
+          },
+          "review": null,
+          "comments": []
+        },
+        {
+          "id": "7aeee748-33f1-4ae9-aabe-144581faf6c5",
+          "text": "정리된 리서치 결과 승인 및 보고서 확정",
+          "title": "정리된 리서치 결과 승인 및 보고서 확정",
+          "done": false,
+          "status": "paused",
+          "role": "Review Needed",
+          "phaseId": "phase_report",
+          "phaseTitle": "결과 승인 및 보고서 정리",
+          "assignee": "검토 필요/리뷰 요청",
+          "assigneeType": "ai",
+          "whyHuman": "최종 결과물 확정과 공유 전 승인이 필요해요",
+          "result": null,
+          "review": {
+            "status": "pending",
+            "comments": []
+          },
+          "comments": []
+        }
+      ],
+      "logs": [
+        {
+          "id": "49ec4bc2-bdf4-4faf-8895-5d902fcb45b7",
+          "ts": 1772808955212,
+          "level": "info",
+          "message": "입력값 정규화 및 WBS(Depth 2) 생성을 완료했어요"
+        },
+        {
+          "id": "3df2fd8d-c2f3-4a38-8c25-b51ade89b1aa",
+          "ts": 1772808955212,
+          "level": "info",
+          "message": "실행 탭으로 전환되어 OpenClaw 자동 실행을 시작해요"
+        },
+        {
+          "id": "58b1014d-7d49-46ea-8c61-bb1886a82c2a",
+          "ts": 1772808955213,
+          "level": "info",
+          "message": "AI 실행 시작: 최신 근거 자료 수집 및 출처 신뢰도 검증"
+        },
+        {
+          "id": "e84cf631-e00b-47da-b81e-0bd3238d09bd",
+          "ts": 1772808955215,
+          "level": "info",
+          "message": "OpenClaw 요청 전송: 최신 근거 자료 수집 및 출처 신뢰도 검증"
+        },
+        {
+          "id": "57d4d7a7-4c71-4e78-bc4f-3c0a8474b383",
+          "ts": 1772808955267,
+          "level": "info",
+          "message": "completed event reply"
+        },
+        {
+          "id": "422f2e69-0ec9-4e69-891f-515c5a8d2e95",
+          "ts": 1772808955268,
+          "level": "info",
+          "message": "AI 실행 완료: 최신 근거 자료 수집 및 출처 신뢰도 검증"
+        },
+        {
+          "id": "4995387d-fac4-4866-85e6-9a625905a0a3",
+          "ts": 1772808955270,
+          "level": "info",
+          "message": "AI 실행 시작: 핵심 이슈 비교표 및 요약 작성"
+        },
+        {
+          "id": "53c0d1bd-a0dd-428e-bf85-266952ca80c3",
+          "ts": 1772808955271,
+          "level": "info",
+          "message": "OpenClaw 요청 전송: 핵심 이슈 비교표 및 요약 작성"
+        },
+        {
+          "id": "bba43ff4-00d7-48ae-bae0-935f6b9cbf7e",
+          "ts": 1772808958273,
+          "level": "info",
+          "message": "OpenClaw 이벤트 응답이 늦어서 history 기준으로 실행을 이어가요"
+        },
+        {
+          "id": "32f75548-2a97-4763-acb1-f9db41713032",
+          "ts": 1772808958277,
+          "level": "info",
+          "message": "AI 실행 완료: 핵심 이슈 비교표 및 요약 작성"
+        },
+        {
+          "id": "0835aac5-6fc6-4dcd-b791-0e5274eba850",
+          "ts": 1772808958279,
+          "level": "info",
+          "message": "Review Needed 단계 도달: 최종 결과물 확정과 공유 전 승인이 필요해요"
+        }
+      ],
+      "executionTranscript": [
+        {
+          "id": "de6441aa-f11e-4279-bfec-8351ae4d6b0c",
+          "taskId": "9f3001e8-5bf8-4dab-8445-1d2e3ae0439b",
+          "phaseId": "phase_scope",
+          "role": "human",
+          "kind": "input",
+          "text": "앱인토스 매출 조사 2",
+          "ts": 1772808955212
+        },
+        {
+          "id": "95e1291f-9e0b-41b5-8807-139247067805",
+          "taskId": "9f3001e8-5bf8-4dab-8445-1d2e3ae0439b",
+          "phaseId": "phase_scope",
+          "role": "system",
+          "kind": "event",
+          "text": "범위 및 기준 확인 단계를 완료하고 웹 리서치 실행을 준비했어요",
+          "ts": 1772808955213
+        },
+        {
+          "id": "39a99813-a132-43c4-bca8-d6415ca0b6ef",
+          "taskId": "158df5fb-015f-4d55-814e-dcc2e2ba6e3c",
+          "phaseId": "phase_collect",
+          "role": "system",
+          "kind": "event",
+          "text": "AI 실행 시작: 최신 근거 자료 수집 및 출처 신뢰도 검증",
+          "ts": 1772808955214
+        },
+        {
+          "id": "363c026e-434a-47b0-9374-0659ff151b2a",
+          "taskId": "158df5fb-015f-4d55-814e-dcc2e2ba6e3c",
+          "phaseId": "phase_collect",
+          "role": "ai",
+          "kind": "task_prompt",
+          "text": "당신은 SEMO 실행 탭의 유즈케이스 AI 실행기예요\n유즈케이스: 웹 리서치\n현재 태스크: 최신 근거 자료 수집 및 출처 신뢰도 검증\n\n[입력값]\n- 조사 주제: 앱인토스 매출 조사 2\n- 비교 대상: 미지정 (핵심 사례를 먼저 식별)\n- 출력 형식: 1p_brief\n- 신뢰 소스 선호: 공식 문서, 뉴스, 리서치\n\n[이미 완료된 태스크 결과]\n1. 사용자 요청 범위와 조사 기준 확정\n- 결과 없음 -\n\n[출력 지시]\n1) 웹 리서치가 필요하면 기본 web_search 대신 Tavily 검색 결과를 우선 사용하세요\n2) 최신 근거를 중심으로 정리하고 가능한 한 URL 출처를 포함하세요\n3) 핵심 요약, 매출/수익화 근거 표, 의사결정 시사점을 포함하세요\n4) 실행 가능한 액션 아이템을 목록으로 제시하세요\n5) 과장 없이 사실/추정은 구분해서 작성하세요",
+          "ts": 1772808955215
+        },
+        {
+          "id": "b040eef2-a33c-4547-b86c-3b5dc38e622a",
+          "taskId": "158df5fb-015f-4d55-814e-dcc2e2ba6e3c",
+          "phaseId": "phase_collect",
+          "role": "ai",
+          "kind": "task_response",
+          "text": "completed event reply",
+          "ts": 1772808955269
+        },
+        {
+          "id": "1a6f024c-7a32-4619-85c1-4368827b119e",
+          "taskId": "06fa89cd-70d6-4ced-8f6d-ab9fbe246cdf",
+          "phaseId": "phase_compare",
+          "role": "system",
+          "kind": "event",
+          "text": "AI 실행 시작: 핵심 이슈 비교표 및 요약 작성",
+          "ts": 1772808955270
+        },
+        {
+          "id": "07e1a2dd-d922-4b10-93d1-17de807ed194",
+          "taskId": "06fa89cd-70d6-4ced-8f6d-ab9fbe246cdf",
+          "phaseId": "phase_compare",
+          "role": "ai",
+          "kind": "task_prompt",
+          "text": "당신은 SEMO 실행 탭의 유즈케이스 AI 실행기예요\n유즈케이스: 웹 리서치\n현재 태스크: 핵심 이슈 비교표 및 요약 작성\n\n[입력값]\n- 조사 주제: 앱인토스 매출 조사 2\n- 비교 대상: 미지정 (핵심 사례를 먼저 식별)\n- 출력 형식: 1p_brief\n- 신뢰 소스 선호: 공식 문서, 뉴스, 리서치\n\n[이미 완료된 태스크 결과]\n1. 사용자 요청 범위와 조사 기준 확정\n- 결과 없음 -\n\n2. 최신 근거 자료 수집 및 출처 신뢰도 검증\ncompleted event reply\n\n[출력 지시]\n1) 웹 리서치가 필요하면 기본 web_search 대신 Tavily 검색 결과를 우선 사용하세요\n2) 최신 근거를 중심으로 정리하고 가능한 한 URL 출처를 포함하세요\n3) 핵심 요약, 매출/수익화 근거 표, 의사결정 시사점을 포함하세요\n4) 실행 가능한 액션 아이템을 목록으로 제시하세요\n5) 과장 없이 사실/추정은 구분해서 작성하세요",
+          "ts": 1772808955271
+        },
+        {
+          "id": "22168d23-88f7-442b-9c88-c79b8141a1f4",
+          "taskId": "06fa89cd-70d6-4ced-8f6d-ab9fbe246cdf",
+          "phaseId": "phase_compare",
+          "role": "system",
+          "kind": "event",
+          "text": "OpenClaw 이벤트 대신 history 응답을 동기화했어요",
+          "ts": 1772808958274
+        },
+        {
+          "id": "cb48b001-d47d-4b6c-961a-62252fc6908d",
+          "taskId": "06fa89cd-70d6-4ced-8f6d-ab9fbe246cdf",
+          "phaseId": "phase_compare",
+          "role": "ai",
+          "kind": "task_response",
+          "text": "assistant reply from history",
+          "ts": 1772808958277
+        },
+        {
+          "id": "dbd6e5fb-b0c1-4a72-b662-25478dc76642",
+          "taskId": "7aeee748-33f1-4ae9-aabe-144581faf6c5",
+          "phaseId": "phase_report",
+          "role": "system",
+          "kind": "event",
+          "text": "Review Needed 단계 도달: 정리된 리서치 결과 승인 및 보고서 확정",
+          "ts": 1772808958279
+        }
+      ],
+      "usage": {
+        "runId": "d40751c5-8d76-43a1-a4a6-2c61c45457b3",
+        "provider": "openclaw",
+        "model": "gateway-rpc",
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0,
+        "costUsd": 0,
+        "ts": 1772808958275
+      },
+      "usecaseId": "web_research",
+      "normalizedInput": {
+        "topic": "앱인토스 매출 조사 2",
+        "targets": [],
+        "outputFormat": "1p_brief",
+        "sourcePreference": [
+          "공식 문서",
+          "뉴스",
+          "리서치"
+        ]
+      },
+      "wbs": {
+        "depth": 2,
+        "phases": [
+          {
+            "id": "phase_scope",
+            "index": 1,
+            "title": "범위 및 기준 확인",
+            "role": "Human",
+            "tasks": [
+              {
+                "id": "9f3001e8-5bf8-4dab-8445-1d2e3ae0439b",
+                "text": "사용자 요청 범위와 조사 기준 확정",
+                "title": "사용자 요청 범위와 조사 기준 확정",
+                "done": true,
+                "status": "completed",
+                "role": "Human",
+                "phaseId": "phase_scope",
+                "phaseTitle": "범위 및 기준 확인",
+                "assignee": "담당자 지정",
+                "assigneeType": "person",
+                "whyHuman": "입력된 자연어 요청을 기준으로 조사 범위를 확정해요",
+                "result": {
+                  "capturedPrompt": "앱인토스 매출 조사 2",
+                  "normalizedInput": {
+                    "topic": "앱인토스 매출 조사 2",
+                    "targets": [],
+                    "outputFormat": "1p_brief",
+                    "sourcePreference": [
+                      "공식 문서",
+                      "뉴스",
+                      "리서치"
+                    ]
+                  },
+                  "completedAt": 1772808955212
+                },
+                "review": null,
+                "comments": []
+              }
+            ]
+          },
+          {
+            "id": "phase_collect",
+            "index": 2,
+            "title": "데이터 및 링크 수집",
+            "role": "AI",
+            "tasks": [
+              {
+                "id": "158df5fb-015f-4d55-814e-dcc2e2ba6e3c",
+                "text": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+                "title": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+                "done": true,
+                "status": "completed",
+                "role": "AI",
+                "phaseId": "phase_collect",
+                "phaseTitle": "데이터 및 링크 수집",
+                "assignee": "AI 실행",
+                "assigneeType": "ai",
+                "whyHuman": "",
+                "result": {
+                  "summary": "completed event reply",
+                  "responseText": "completed event reply",
+                  "gatewayRunId": "gateway-run-2",
+                  "completedAt": 1772808955267
+                },
+                "review": null,
+                "comments": []
+              }
+            ]
+          },
+          {
+            "id": "phase_compare",
+            "index": 3,
+            "title": "요약 및 비교",
+            "role": "AI",
+            "tasks": [
+              {
+                "id": "06fa89cd-70d6-4ced-8f6d-ab9fbe246cdf",
+                "text": "핵심 이슈 비교표 및 요약 작성",
+                "title": "핵심 이슈 비교표 및 요약 작성",
+                "done": true,
+                "status": "completed",
+                "role": "AI",
+                "phaseId": "phase_compare",
+                "phaseTitle": "요약 및 비교",
+                "assignee": "AI 실행",
+                "assigneeType": "ai",
+                "whyHuman": "",
+                "result": {
+                  "summary": "assistant reply from history",
+                  "responseText": "assistant reply from history",
+                  "gatewayRunId": "gateway-run-1",
+                  "completedAt": 1772808958275
+                },
+                "review": null,
+                "comments": []
+              }
+            ]
+          },
+          {
+            "id": "phase_report",
+            "index": 4,
+            "title": "결과 승인 및 보고서 정리",
+            "role": "Review Needed",
+            "tasks": [
+              {
+                "id": "7aeee748-33f1-4ae9-aabe-144581faf6c5",
+                "text": "정리된 리서치 결과 승인 및 보고서 확정",
+                "title": "정리된 리서치 결과 승인 및 보고서 확정",
+                "done": false,
+                "status": "paused",
+                "role": "Review Needed",
+                "phaseId": "phase_report",
+                "phaseTitle": "결과 승인 및 보고서 정리",
+                "assignee": "검토 필요/리뷰 요청",
+                "assigneeType": "ai",
+                "whyHuman": "최종 결과물 확정과 공유 전 승인이 필요해요",
+                "result": null,
+                "review": {
+                  "status": "pending",
+                  "comments": []
+                },
+                "comments": []
+              }
+            ]
+          }
+        ]
+      },
+      "pauseState": {
+        "reason": "review",
+        "taskId": "7aeee748-33f1-4ae9-aabe-144581faf6c5",
+        "whyHuman": "최종 결과물 확정과 공유 전 승인이 필요해요"
+      },
+      "currentExecution": null,
+      "artifacts": {
+        "usecaseId": "web_research",
+        "type": "brief",
+        "title": "웹 리서치 결과",
+        "sections": [
+          {
+            "taskId": "158df5fb-015f-4d55-814e-dcc2e2ba6e3c",
+            "title": "최신 근거 자료 수집 및 출처 신뢰도 검증",
+            "content": {
+              "summary": "completed event reply",
+              "responseText": "completed event reply"
+            },
+            "ts": 1772808955267
+          },
+          {
+            "taskId": "06fa89cd-70d6-4ced-8f6d-ab9fbe246cdf",
+            "title": "핵심 이슈 비교표 및 요약 작성",
+            "content": {
+              "summary": "assistant reply from history",
+              "responseText": "assistant reply from history"
+            },
+            "ts": 1772808958275
+          }
+        ],
+        "board": {
+          "items": [
+            {
+              "id": "roadmap-1",
+              "title": "핵심 후보를 좁히고 추가 검증 항목을 우선순위화해요",
+              "status": "todo"
+            }
+          ]
+        },
+        "exportable": true,
+        "updatedAt": 1772808958275,
+        "report": {
+          "status": "draft",
+          "title": "앱인토스 매출 조사 2",
+          "summary": "completed event reply",
+          "comparisonRows": [],
+          "recommendation": "completed event reply",
+          "sources": [],
+          "actions": [
+            "핵심 후보를 좁히고 추가 검증 항목을 우선순위화해요"
+          ],
+          "documentMarkdown": "assistant reply from history",
+          "generatedAt": 1772808955212,
+          "approvedAt": null
+        },
+        "roadmap": {
+          "direction": "LR",
+          "nodes": [
+            {
+              "id": "root",
+              "position": {
+                "x": 40,
+                "y": 180
+              },
+              "data": {
+                "label": "앱인토스 매출 조사 2",
+                "tone": "root"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-1",
+              "position": {
+                "x": 320,
+                "y": 40
+              },
+              "data": {
+                "label": "근거 수집",
+                "tone": "stage"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-1-action-1",
+              "position": {
+                "x": 620,
+                "y": 40
+              },
+              "data": {
+                "label": "핵심 후보를 좁히고 추가 검증 항목을 우선순위화해요",
+                "tone": "action"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-2",
+              "position": {
+                "x": 320,
+                "y": 210
+              },
+              "data": {
+                "label": "요약 및 비교",
+                "tone": "stage"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-2-action-1",
+              "position": {
+                "x": 620,
+                "y": 210
+              },
+              "data": {
+                "label": "요약 및 비교 후속 정리",
+                "tone": "action"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-3",
+              "position": {
+                "x": 320,
+                "y": 380
+              },
+              "data": {
+                "label": "실행 계획",
+                "tone": "stage"
+              },
+              "type": "default"
+            },
+            {
+              "id": "stage-3-action-1",
+              "position": {
+                "x": 620,
+                "y": 380
+              },
+              "data": {
+                "label": "실행 계획 후속 정리",
+                "tone": "action"
+              },
+              "type": "default"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge-root-stage-1",
+              "source": "root",
+              "target": "stage-1",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-stage-1-stage-1-action-1",
+              "source": "stage-1",
+              "target": "stage-1-action-1",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-root-stage-2",
+              "source": "root",
+              "target": "stage-2",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-stage-2-stage-2-action-1",
+              "source": "stage-2",
+              "target": "stage-2-action-1",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-root-stage-3",
+              "source": "root",
+              "target": "stage-3",
+              "type": "smoothstep"
+            },
+            {
+              "id": "edge-stage-3-stage-3-action-1",
+              "source": "stage-3",
+              "target": "stage-3-action-1",
+              "type": "smoothstep"
+            }
+          ]
+        },
+        "result": {
+          "title": "앱인토스 매출 조사 2",
+          "sources": [],
+          "comparison": [],
+          "brief": "completed event reply",
+          "actions": [
+            "핵심 후보를 좁히고 추가 검증 항목을 우선순위화해요"
+          ]
+        }
+      },
+      "originConversationId": "",
+      "executionFeatures": [],
+      "executionFeaturesLockedAt": 1772808955212,
+      "executionFeaturesStatus": "none",
+      "executionFeaturesError": null,
+      "executionFeaturesDowngradedAt": null,
+      "executionFeaturesDowngradeReason": null,
+      "sessionKey": "agent:main:run:dba139dc-e4b6-4610-aff3-a3870532618f",
+      "sessionMode": "per_run"
+    }
+  },
+  "conversations": {},
+  "skills": {
+    "self-improving-agent": {
+      "id": "self-improving-agent",
+      "name": "자동 개선 루프",
+      "description": "실패와 수정 사례를 바탕으로 에이전트 동작을 점점 더 안정적으로 개선해요",
+      "enabled": true
+    },
+    "tavily-search": {
+      "id": "tavily-search",
+      "name": "웹 리서치",
+      "description": "웹에서 최신 정보를 검색하고, 핵심 근거를 정리해 제공해요",
+      "enabled": false
+    },
+    "find-skills": {
+      "id": "find-skills",
+      "name": "스킬 탐색",
+      "description": "필요한 작업에 맞는 스킬을 찾고 설치 대상을 추천해요",
+      "enabled": true
+    },
+    "gog": {
+      "id": "gog",
+      "name": "구글 워크스페이스 연동",
+      "description": "Gmail, Calendar, Drive, Docs, Sheets 같은 Google Workspace 작업을 연동해요",
+      "enabled": false
+    },
+    "summarize": {
+      "id": "summarize",
+      "name": "문서·링크 요약",
+      "description": "문서, 링크, PDF, 이미지, 오디오 같은 다양한 입력을 빠르게 요약해요",
+      "enabled": false
+    },
+    "agent-browser": {
+      "id": "agent-browser",
+      "name": "브라우저 자동화",
+      "description": "웹페이지를 열고 탐색하며 클릭, 입력, 스냅샷 작업을 자동으로 수행해요",
+      "enabled": false
+    }
+  },
+  "defaults": {
+    "defaultModel": null
+  },
+  "features": {
+    "knowledgeMap": false,
+    "memoryAutoImprove": false,
+    "proactiveCheck": false,
+    "skillFinder": false
+  },
+  "featureStatus": {
+    "knowledgeMap": {
+      "source": "none",
+      "supported": null,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 0,
+      "errorCode": null,
+      "lastError": null,
+      "details": null
+    },
+    "memoryAutoImprove": {
+      "source": "none",
+      "supported": null,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 0,
+      "errorCode": null,
+      "lastError": null,
+      "details": null
+    },
+    "proactiveCheck": {
+      "source": "none",
+      "supported": null,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 0,
+      "errorCode": null,
+      "lastError": null,
+      "details": null
+    },
+    "skillFinder": {
+      "source": "none",
+      "supported": null,
+      "confirmedEnabled": false,
+      "lastAppliedAt": 0,
+      "errorCode": null,
+      "lastError": null,
+      "details": null
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "wizard": true,
+  "gateway": {
+    "controlUi": {
+      "dangerouslyDisableDeviceAuth": true,
+      "dangerouslyAllowHostHeaderOriginFallback": true
+    },
+    "auth": {}
+  },
+  "update": {
+    "checkOnStart": false
+  },
+  "tools": {
+    "profile": "full"
+  }
+}

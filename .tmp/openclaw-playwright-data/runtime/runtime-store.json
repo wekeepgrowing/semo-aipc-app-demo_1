@@ -1,0 +1,227 @@
+{
+  "runs": {
+    "gw-2383c121-863d-4929-8a3d-712652617d50": {
+      "id": "gw-2383c121-863d-4929-8a3d-712652617d50",
+      "title": "OpenClaw feature enforcement happy path",
+      "titleCustomized": false,
+      "prompt": "OpenClaw feature enforcement happy path",
+      "status": "failed",
+      "sourceAction": "home_input",
+      "sourceType": "gateway",
+      "createdAt": 1772774870749,
+      "updatedAt": 1772775029958,
+      "step": 1,
+      "steps": [],
+      "tasks": [],
+      "logs": [
+        {
+          "id": "fc590d1a-c071-4572-8651-6c5b5ae4ba2c",
+          "ts": 1772774942346,
+          "level": "error",
+          "message": "feature not enabled: ontology"
+        }
+      ],
+      "usage": {
+        "runId": "gw-2383c121-863d-4929-8a3d-712652617d50",
+        "provider": "unknown",
+        "model": "unknown",
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0,
+        "costUsd": 0,
+        "ts": 1772774994907
+      },
+      "usecaseId": "",
+      "normalizedInput": null,
+      "wbs": null,
+      "pauseState": null,
+      "currentExecution": null,
+      "artifacts": null,
+      "executionFeatures": [
+        "ontology",
+        "self-improving-loop",
+        "proactive",
+        "find-skills"
+      ],
+      "executionFeaturesLockedAt": 1772774870750,
+      "executionFeaturesStatus": "failed",
+      "executionFeaturesError": {
+        "code": "feature_unsupported",
+        "message": "feature not enabled: ontology",
+        "details": null
+      },
+      "sessionKey": "agent:main:run:733a93fa-afaf-4c28-9b5e-eeb2a44e71ba",
+      "sessionMode": "per_run"
+    },
+    "gw-399e731a-37d4-4f6a-8c4e-6d34a170e9d4": {
+      "id": "gw-399e731a-37d4-4f6a-8c4e-6d34a170e9d4",
+      "title": "__newrun__ __missing__ feature confirmat",
+      "titleCustomized": false,
+      "prompt": "__newrun__ __missing__ feature confirmation smoke",
+      "status": "running",
+      "sourceAction": "home_input",
+      "sourceType": "gateway",
+      "createdAt": 1772775029958,
+      "updatedAt": 1772775029958,
+      "step": 1,
+      "steps": [],
+      "tasks": [],
+      "logs": [],
+      "usage": null,
+      "usecaseId": "",
+      "normalizedInput": null,
+      "wbs": null,
+      "pauseState": null,
+      "currentExecution": null,
+      "artifacts": null,
+      "executionFeatures": [
+        "ontology",
+        "self-improving-loop",
+        "proactive",
+        "find-skills"
+      ],
+      "executionFeaturesLockedAt": null,
+      "executionFeaturesStatus": "locked",
+      "executionFeaturesError": null,
+      "sessionKey": "",
+      "sessionMode": "legacy_shared"
+    }
+  },
+  "skills": {
+    "research-agent": {
+      "id": "research-agent",
+      "name": "리서치 에이전트",
+      "description": "웹 조사 및 자료 수집 자동화",
+      "enabled": false
+    },
+    "summary-agent": {
+      "id": "summary-agent",
+      "name": "요약 에이전트",
+      "description": "긴 문서를 핵심 요점으로 요약",
+      "enabled": false
+    },
+    "planner-agent": {
+      "id": "planner-agent",
+      "name": "플래너 에이전트",
+      "description": "작업 계획 수립 및 단계 분해",
+      "enabled": false
+    },
+    "monitor-agent": {
+      "id": "monitor-agent",
+      "name": "모니터 에이전트",
+      "description": "실행 상태 모니터링 및 알림",
+      "enabled": false
+    },
+    "writer-agent": {
+      "id": "writer-agent",
+      "name": "작성 에이전트",
+      "description": "보고서/문서 초안 작성",
+      "enabled": false
+    },
+    "review-agent": {
+      "id": "review-agent",
+      "name": "리뷰 에이전트",
+      "description": "결과물 품질 점검 및 피드백",
+      "enabled": false
+    },
+    "evidence-research-bundle": {
+      "id": "evidence-research-bundle",
+      "name": "evidence-research-bundle",
+      "description": "",
+      "enabled": true
+    },
+    "brief-writer-bundle": {
+      "id": "brief-writer-bundle",
+      "name": "brief-writer-bundle",
+      "description": "",
+      "enabled": true
+    },
+    "doc-finder-bundle": {
+      "id": "doc-finder-bundle",
+      "name": "doc-finder-bundle",
+      "description": "",
+      "enabled": true
+    },
+    "actionizer-bundle": {
+      "id": "actionizer-bundle",
+      "name": "actionizer-bundle",
+      "description": "",
+      "enabled": true
+    }
+  },
+  "defaults": {
+    "defaultModel": null
+  },
+  "features": {
+    "knowledgeMap": true,
+    "memoryAutoImprove": true,
+    "proactiveCheck": true,
+    "skillFinder": true
+  },
+  "featureStatus": {
+    "knowledgeMap": {
+      "source": "api",
+      "supported": true,
+      "confirmedEnabled": true,
+      "lastAppliedAt": 1772775023842,
+      "errorCode": null,
+      "lastError": null,
+      "details": {
+        "canonicalId": "ontology",
+        "gateway": {
+          "id": "ontology",
+          "supported": true,
+          "enabled": true
+        }
+      }
+    },
+    "memoryAutoImprove": {
+      "source": "api",
+      "supported": true,
+      "confirmedEnabled": true,
+      "lastAppliedAt": 1772775023889,
+      "errorCode": null,
+      "lastError": null,
+      "details": {
+        "canonicalId": "self-improving-loop",
+        "gateway": {
+          "id": "self-improving-loop",
+          "supported": true,
+          "enabled": true
+        }
+      }
+    },
+    "proactiveCheck": {
+      "source": "api",
+      "supported": true,
+      "confirmedEnabled": true,
+      "lastAppliedAt": 1772775023913,
+      "errorCode": null,
+      "lastError": null,
+      "details": {
+        "canonicalId": "proactive",
+        "gateway": {
+          "id": "proactive",
+          "supported": true,
+          "enabled": true
+        }
+      }
+    },
+    "skillFinder": {
+      "source": "api",
+      "supported": true,
+      "confirmedEnabled": true,
+      "lastAppliedAt": 1772775023938,
+      "errorCode": null,
+      "lastError": null,
+      "details": {
+        "canonicalId": "find-skills",
+        "gateway": {
+          "id": "find-skills",
+          "supported": true,
+          "enabled": true
+        }
+      }
+    }
+  }
+}

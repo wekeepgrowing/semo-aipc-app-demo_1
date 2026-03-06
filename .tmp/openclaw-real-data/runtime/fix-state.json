@@ -1,0 +1,19 @@
+{
+  "advancedBypass": {
+    "disableDeviceAuth": true,
+    "allowHostHeaderOriginFallback": true,
+    "enabledAt": 1772776787019,
+    "expiresAt": 1772778587019
+  },
+  "lastClose": {
+    "code": 1008,
+    "reason": "control ui requires device identity (use HTTPS or localhost secure context)",
+    "at": 1772776877088
+  },
+  "lastRecover": {
+    "at": 1772776792582,
+    "status": "route_change_required",
+    "category": "insecure_http_device_identity_required",
+    "summaryKo": "보안 컨텍스트(WebCrypto) 조건이 충족되지 않아 자동 수정 대신 접속 경로 변경이 필요합니다."
+  }
+}

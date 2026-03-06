@@ -1,0 +1,13 @@
+{
+  "wizard": true,
+  "gateway": {
+    "controlUi": {},
+    "auth": {}
+  },
+  "update": {
+    "checkOnStart": false
+  },
+  "tools": {
+    "profile": "full"
+  }
+}
