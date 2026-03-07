@@ -24,7 +24,7 @@
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.2-amd64@sha256:REPLACE_ME
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64
 ```
 
 즉 아래 3가지를 받아야 합니다.
@@ -45,7 +45,7 @@ CasaOS의 `Custom Install` 화면에 아래 파일 내용을 넣으면 됩니다
 
 1. CasaOS에서 `Custom Install`을 엽니다.
 2. [deploy/casaos/docker-compose.yml](/Users/hj/workspace/semo-ai-app/deploy/casaos/docker-compose.yml) 내용을 그대로 붙여넣습니다.
-3. `SEMO_AI_IMAGE`를 실제 릴리스 이미지 태그+digest로 바꿉니다.
+3. `SEMO_AI_IMAGE`를 실제 릴리스 이미지 값으로 넣습니다.
 4. 설치를 실행합니다.
 
 기본 compose 핵심 구조:
@@ -55,7 +55,7 @@ version: "3.8"
 
 services:
   semo-ai:
-    image: ${SEMO_AI_IMAGE:-ghcr.io/your-org/semo-ai:2026.3.2-amd64@sha256:REPLACE_ME}
+    image: ${SEMO_AI_IMAGE:-ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64}
     container_name: semo-ai
     platform: linux/amd64
     init: true
@@ -86,6 +86,14 @@ http://<CasaOS IP>:18789
 ```text
 http://192.168.0.10:18789
 ```
+
+이미지가 private로 올라가 있는 경우에는 CasaOS 서버에서 먼저 GHCR 로그인이 필요할 수 있습니다.
+
+```bash
+docker login ghcr.io
+```
+
+이때 `read:packages` 권한이 있는 GitHub 토큰을 사용하면 됩니다.
 
 ## 5. 처음 설치 후 꼭 확인할 것
 
@@ -159,7 +167,7 @@ tar -czf "semo-ai-backup-$(date +%Y%m%d-%H%M%S).tgz" semo-ai
 그다음 `SEMO_AI_IMAGE`를 새 값으로 바꿉니다.
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.3-amd64@sha256:NEW_DIGEST
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.3-amd64
 ```
 
 업데이트 후에는 아래를 확인하면 됩니다.
@@ -175,7 +183,7 @@ SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.3-amd64@sha256:NEW_DIGEST
 문제가 생기면 이전 이미지 digest로 되돌리면 됩니다.
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.2-amd64@sha256:OLD_DIGEST
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64
 ```
 
 필요하면 AppData도 복원합니다.
@@ -190,7 +198,7 @@ tar -xzf semo-ai-backup-YYYYMMDD-HHMMSS.tgz
 
 아래처럼 전달하면 됩니다.
 
-`CasaOS에서는 deploy/casaos/docker-compose.yml 내용을 Custom Install에 넣고, SEMO_AI_IMAGE만 실제 x86 릴리스 이미지 태그+digest로 바꿔서 설치해 주세요. 설치 후에는 http://<장비IP>:18789 로 접속하면 됩니다.`
+`CasaOS에서는 deploy/casaos/docker-compose.yml 내용을 Custom Install에 넣고, SEMO_AI_IMAGE를 ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64 로 설정해서 설치해 주세요. 설치 후에는 http://<장비IP>:18789 로 접속하면 됩니다.`
 
 ## 12. 개발자가 참고할 파일
 

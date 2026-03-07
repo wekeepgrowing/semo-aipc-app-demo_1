@@ -24,14 +24,13 @@
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.2-amd64@sha256:REPLACE_ME
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64
 ```
 
 즉 설치 담당자는 우리에게 아래 값을 받아야 합니다.
 
 - Docker 이미지 주소
 - 정확한 태그
-- 정확한 digest
 
 ## 2. CasaOS에서 어디에 넣어야 하나
 
@@ -59,7 +58,7 @@ version: "3.8"
 
 services:
   semo-ai:
-    image: ${SEMO_AI_IMAGE:-ghcr.io/your-org/semo-ai:2026.3.2-amd64@sha256:REPLACE_ME}
+    image: ${SEMO_AI_IMAGE:-ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64}
     container_name: semo-ai
     platform: linux/amd64
     init: true
@@ -90,12 +89,20 @@ services:
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.2-amd64@sha256:REAL_DIGEST
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64
 ```
 
 ### 3-4. 설치 실행
 
 설치를 실행하면 CasaOS가 이미지를 pull 하고 컨테이너를 올립니다.
+
+만약 이미지 pull이 안 되면, CasaOS 서버에서 먼저 GHCR 로그인이 필요할 수 있습니다.
+
+```bash
+docker login ghcr.io
+```
+
+이때 `read:packages` 권한이 있는 GitHub 토큰을 사용하면 됩니다.
 
 ## 4. 설치 후 어디로 접속하나
 
@@ -191,7 +198,7 @@ tar -czf "semo-ai-backup-$(date +%Y%m%d-%H%M%S).tgz" semo-ai
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.3-amd64@sha256:NEW_DIGEST
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.3-amd64
 ```
 
 업데이트 후 확인:
@@ -209,7 +216,7 @@ SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.3-amd64@sha256:NEW_DIGEST
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/your-org/semo-ai:2026.3.2-amd64@sha256:OLD_DIGEST
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64
 ```
 
 필요하면 AppData도 복원합니다.
@@ -224,4 +231,4 @@ tar -xzf semo-ai-backup-YYYYMMDD-HHMMSS.tgz
 
 아래처럼 전달하면 됩니다.
 
-`CasaOS에서는 deploy/casaos/docker-compose.yml 내용을 Custom Install에 넣고, SEMO_AI_IMAGE만 실제 x86 릴리스 이미지 태그+digest로 바꿔서 설치해 주세요. 설치 후에는 http://<장비IP>:18789 로 접속하면 됩니다.`
+`CasaOS에서는 deploy/casaos/docker-compose.yml 내용을 Custom Install에 넣고, SEMO_AI_IMAGE를 ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64 로 설정해서 설치해 주세요. 설치 후에는 http://<장비IP>:18789 로 접속하면 됩니다.`
