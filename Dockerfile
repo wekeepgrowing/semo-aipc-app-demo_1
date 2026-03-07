@@ -10,6 +10,7 @@ RUN npm run build
 FROM node:22-trixie-slim
 
 ARG OPENCLAW_NPM_VERSION=2026.3.2
+ARG INSTALL_HOMEBREW_AT_BUILD=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   sudo \
@@ -24,6 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 ENV HOME=/data
+ENV TMPDIR=/data/.tmp
+ENV TEMP=/data/.tmp
+ENV TMP=/data/.tmp
 WORKDIR /data
 RUN mkdir -p /data && chown node:node /data
 
@@ -48,7 +52,11 @@ RUN echo "node ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER node
 
 # Homebrew for tool installs inside app sandbox
-RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+RUN if [ "${INSTALL_HOMEBREW_AT_BUILD}" = "1" ]; then \
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; \
+    else \
+      sudo mkdir -p /home/linuxbrew; \
+    fi
 
 # Shim systemctl calls used by OpenClaw into process-level restarts
 RUN printf '#!/bin/bash\ncmd=""\nfor arg in "$@"; do\n  case "$arg" in\n    -*) ;;\n    *) cmd="$arg"; break ;;\n  esac\ndone\ncase "$cmd" in\n  restart|stop) pkill -f "openclaw-gateway" 2>/dev/null || true ;;\n  start) echo "openclaw-gateway is managed by the container" ;;\n  *) exit 0 ;;\nesac\n' \
@@ -63,7 +71,9 @@ RUN printf '#!/bin/bash\necho "Error: apt is disabled in this app sandbox. Use b
   && sudo ln -sf /usr/local/bin/use-brew /usr/local/bin/apt-get
 
 # Prepare home skeleton for persistent restore logic
-RUN sudo mv /data /home-skeleton && sudo mv /home/linuxbrew /home-skeleton/linuxbrew
+RUN sudo mv /data /home-skeleton \
+  && sudo mkdir -p /home-skeleton/linuxbrew \
+  && if [ -d /home/linuxbrew ]; then sudo cp -a /home/linuxbrew/. /home-skeleton/linuxbrew/ 2>/dev/null || true; fi
 
 ENV PATH="/data/.npm-global/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
 

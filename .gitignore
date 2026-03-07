@@ -7,3 +7,5 @@ npm-debug.log*
 .tmp-openclaw-data/
 data/
 test-results/
+.tmp/
+deploy/casaos/semo-ai-casaos-bundle.tar.gz

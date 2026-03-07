@@ -1,10 +1,10 @@
-# OpenClaw Custom UI Gateway (Our OS)
+# Semo AI Runtime
 
-This repository packages OpenClaw for Our OS with a custom UI-first runtime.
+This repository packages the Semo AI runtime with a custom UI-first gateway and deployment assets for both Our OS and CasaOS-style Docker installs.
 
 ## What this runtime does
 
-- Replaces OpenClaw default GUI with a custom UI (`/` and `/app/*`)
+- Replaces the default OpenClaw GUI with a custom Semo AI UI (`/` and `/app/*`)
 - Exposes custom UI API namespace under `/api/ui/*`
 - Proxies OpenClaw gateway API through `/api/oc/*`
 - Proxies OpenClaw gateway WebSocket through `/ws/oc/*`
@@ -32,13 +32,15 @@ This repository packages OpenClaw for Our OS with a custom UI-first runtime.
 
 ## Metrics configuration
 
-Set these environment variables for `/api/ui/system/metrics`:
+Set these environment variables for `/api/ui/system/metrics` when you want to read an external metrics API:
 
-- `OUR_OS_METRICS_BASE_URL` (required)
+- `OUR_OS_METRICS_BASE_URL` (optional)
 - `OUR_OS_METRICS_PATH` (optional, default `/api/v1/system/metrics`)
 - `OUR_OS_METRICS_AUTH_MODE` (`none`, `bearer`, `x-api-key`)
 - `OUR_OS_METRICS_TOKEN` or `OUR_OS_METRICS_TOKEN_FILE`
 - `OUR_OS_METRICS_TIMEOUT_MS` (optional, default `3500`)
+
+If `OUR_OS_METRICS_BASE_URL` is not set, the server falls back to local container metrics for CPU, memory, disk, and network usage. This is the default mode for CasaOS deployments.
 
 Normalized response schema:
 
@@ -106,6 +108,7 @@ export OPENCLAW_LINUXBREW_PATH=/absolute/path/to/openclaw-data/linuxbrew
   - [`ouros/openclaw/docker-compose.yml`](/Users/hj/workspace/semo-ai-app/ouros/openclaw/docker-compose.yml) already uses:
     - `${APP_DATA_DIR}/data:/data`
     - `${APP_DATA_DIR}/data/linuxbrew:/home/linuxbrew`
+  - CasaOS custom install assets live under [`deploy/casaos`](/Users/hj/workspace/semo-ai-app/deploy/casaos).
 - If onboarding does not appear due to stale config, reset local app data:
 
 ```bash
@@ -135,7 +138,7 @@ rm -rf "${OPENCLAW_DATA_PATH:-./data}"
 ## Container build
 
 ```bash
-docker build -t openclaw-our-os:dev .
+docker build -t semo-ai:dev .
 ```
 
 ## Onboarding Prompt Discovery (No local OpenClaw install)
@@ -167,5 +170,6 @@ npm run onboarding:parse -- --in onboarding-artifacts/onboard-quickstart-YYYYMMD
 
 ## Notes
 
-- `ouros/openclaw/` contains our OS package metadata, compose, and lifecycle hooks.
+- [`ouros/openclaw/`](/Users/hj/workspace/semo-ai-app/ouros/openclaw) contains Our OS package metadata, compose, and lifecycle hooks.
+- [`deploy/casaos/`](/Users/hj/workspace/semo-ai-app/deploy/casaos) contains CasaOS custom install assets, backup/update guidance, and the x86-only deployment compose.
 - `openclaw` npm updates are automated via workflows in `.github/workflows/`.

@@ -2252,19 +2252,16 @@ function SkillsPage({
 
   const normalizedSkills = Array.isArray(skills) ? skills.map(normalizeSkillItem) : [];
   const enabledCount = normalizedSkills.filter((skill) => skill.enabled).length;
-  const defaultCount = normalizedSkills.filter((skill) => skill.defaultInstalled).length;
 
   return (
     <div className="dash-page dash-content-enter">
       <h1 className="dash-page-title dash-page-title-small">스킬</h1>
-      <p className="dash-page-subtitle dash-page-subtitle-small">서비스에 기본 포함되거나 사용자가 설치한 실제 Semo AI 스킬</p>
+      <p className="dash-page-subtitle dash-page-subtitle-small">실제 연결된 Semo AI 스킬을 확인하고 설정해요</p>
 
       <article className="dash-skill-banner">
         <div>
           <h2>실제 설치 스킬</h2>
-          <p>
-            기본 포함 {defaultCount}개, 현재 활성 {enabledCount}개
-          </p>
+          <p>총 {normalizedSkills.length}개, 현재 활성 {enabledCount}개</p>
         </div>
         <button
           type="button"
@@ -2308,9 +2305,6 @@ function SkillsPage({
               <div className="dash-skill-card-top">
                 <div className="dash-skill-icon" />
                 <div className="dash-skill-badges">
-                  <span className={`dash-badge ${skill.source === "default" ? "ai" : "person"}`}>
-                    {skill.source === "default" ? "기본 포함" : "사용자 설치"}
-                  </span>
                   <span className={`dash-skill-state ${setupTone}`}>{getSkillSetupLabel(skill)}</span>
                 </div>
               </div>
@@ -2330,10 +2324,6 @@ function SkillsPage({
             <div className="dash-skill-meta">
               <span>상태</span>
               <strong>{skill.enabled ? "활성" : "비활성"}</strong>
-            </div>
-            <div className="dash-skill-meta">
-              <span>기본 포함</span>
-              <strong>{skill.defaultInstalled ? "예" : "아니오"}</strong>
             </div>
             <div className="dash-skill-footer">
               {pending ? (

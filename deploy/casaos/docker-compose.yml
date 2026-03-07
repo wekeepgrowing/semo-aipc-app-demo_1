@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  semo-ai:
+    image: ${SEMO_AI_IMAGE:-ghcr.io/your-org/semo-ai:2026.3.2-amd64@sha256:REPLACE_ME}
+    container_name: semo-ai
+    platform: linux/amd64
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 1m
+    ports:
+      - "18789:18789"
+    environment:
+      SEMO_ASSISTANT_NAME: ${SEMO_ASSISTANT_NAME:-Semo AI}
+      TMPDIR: ${TMPDIR:-/data/.tmp}
+      TMP: ${TMP:-/data/.tmp}
+      TEMP: ${TEMP:-/data/.tmp}
+      OUR_OS_METRICS_BASE_URL: ${OUR_OS_METRICS_BASE_URL:-}
+      OUR_OS_METRICS_PATH: ${OUR_OS_METRICS_PATH:-/api/v1/system/metrics}
+      OUR_OS_METRICS_AUTH_MODE: ${OUR_OS_METRICS_AUTH_MODE:-none}
+      OUR_OS_METRICS_TOKEN: ${OUR_OS_METRICS_TOKEN:-}
+      OUR_OS_METRICS_TOKEN_FILE: ${OUR_OS_METRICS_TOKEN_FILE:-}
+      OUR_OS_METRICS_TIMEOUT_MS: ${OUR_OS_METRICS_TIMEOUT_MS:-3500}
+    volumes:
+      - /DATA/AppData/semo-ai/data:/data
+      - /DATA/AppData/semo-ai/linuxbrew:/home/linuxbrew

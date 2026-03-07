@@ -85,6 +85,10 @@ export default function OAuthInteractiveStep({
   const lastStatusRef = useRef(null);
 
   const stateText = useMemo(() => STATE_LABELS[status?.state] || status?.state || "상태 확인 중", [status?.state]);
+  const needsSelectionSubmit = useMemo(
+    () => /press space to select,\s*enter to submit/i.test(status?.lastMessage || ""),
+    [status?.lastMessage]
+  );
 
   useEffect(() => {
     lastStatusRef.current = status;
@@ -216,6 +220,23 @@ export default function OAuthInteractiveStep({
     }
   };
 
+  const handleAdvanceSelection = async () => {
+    try {
+      setSubmitting(true);
+      setInputError("");
+      await fetchApiJson(`/api/ui/onboarding/auth/${sessionId}/input`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: " ", preserveWhitespace: true }),
+      });
+    } catch (error) {
+      const normalized = normalizeInteractiveError(error, "추가 확인 단계 진행에 실패했어요");
+      setInputError(normalized.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCopyAuthUrl = async () => {
     const authUrl = toHttpUrl(status?.authUrl);
     if (!authUrl) return;
@@ -300,6 +321,18 @@ export default function OAuthInteractiveStep({
               </button>
             </div>
             <p className="ov0-auth-help">로그인 완료 후 브라우저 주소창의 URL을 붙여넣어 주세요</p>
+          </div>
+        ) : null}
+
+        {needsSelectionSubmit ? (
+          <div className="ov0-auth-input-block">
+            <label>추가 확인</label>
+            <div className="ov0-auth-input-row">
+              <button type="button" className="ov0-btn primary flat" onClick={handleAdvanceSelection} disabled={submitting}>
+                {submitting ? "진행 중" : "기본 선택으로 계속"}
+              </button>
+            </div>
+            <p className="ov0-auth-help">로그인 뒤 선택 확인 프롬프트가 멈추면 기본값으로 한 번 더 진행해 주세요</p>
           </div>
         ) : null}
       </div>

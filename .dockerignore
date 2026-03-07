@@ -1,0 +1,10 @@
+.git
+.github
+.codex
+.tmp
+data
+node_modules
+ui/node_modules
+ui/dist
+onboarding-artifacts
+deploy/casaos/semo-ai-casaos-bundle.tar.gz

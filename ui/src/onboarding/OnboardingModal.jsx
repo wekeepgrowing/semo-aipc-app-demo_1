@@ -59,6 +59,7 @@ export default function OnboardingModal({ onDone, stateSnapshot = null }) {
 
   const hasInitializedSelectionRef = useRef(false);
   const restoredSessionRef = useRef("");
+  const autoFinalizeStartedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -193,6 +194,7 @@ export default function OnboardingModal({ onDone, stateSnapshot = null }) {
     setInteractiveDone(false);
     setIsFinalizing(false);
     setFinalizeError("");
+    autoFinalizeStartedRef.current = false;
   }, []);
 
   const onProviderSelect = (providerId) => {
@@ -221,6 +223,9 @@ export default function OnboardingModal({ onDone, stateSnapshot = null }) {
         setKeyValidationWarning(null);
         setConnectError("");
         setInteractiveSessionId("");
+        if (interactiveWithoutCredential) {
+          setStep(finalizeStepIndex);
+        }
         return;
       }
 
@@ -229,9 +234,10 @@ export default function OnboardingModal({ onDone, stateSnapshot = null }) {
       setConnectStatus("idle");
       setKeyValidationWarning(null);
       setConnectError(result?.message || `[${result?.code || "cli_failed"}] 인증에 실패했어요`);
+      autoFinalizeStartedRef.current = false;
       setStep(connectStepIndex);
     },
-    [connectStepIndex]
+    [connectStepIndex, finalizeStepIndex, interactiveWithoutCredential]
   );
 
   const onInteractiveCancel = useCallback(() => {
@@ -240,6 +246,7 @@ export default function OnboardingModal({ onDone, stateSnapshot = null }) {
     setConnectStatus("idle");
     setKeyValidationWarning(null);
     setConnectError("[interactive_cancelled] 인증이 취소됐어요");
+    autoFinalizeStartedRef.current = false;
     setStep(connectStepIndex);
   }, [connectStepIndex]);
 
@@ -355,7 +362,8 @@ export default function OnboardingModal({ onDone, stateSnapshot = null }) {
     }
   };
 
-  const triggerDone = async () => {
+  const triggerDone = useCallback(async () => {
+    autoFinalizeStartedRef.current = true;
     setIsFinalizing(true);
     setFinalizeError("");
     if (interactiveRequired && step === finalizeStepIndex) {
@@ -388,10 +396,18 @@ export default function OnboardingModal({ onDone, stateSnapshot = null }) {
       if (interactiveRequired && step === finalizeStepIndex) {
         setConnectError(message);
       }
+      autoFinalizeStartedRef.current = false;
     } finally {
       setIsFinalizing(false);
     }
-  };
+  }, [finalizeStepIndex, interactiveRequired, onDone, step]);
+
+  useEffect(() => {
+    if (step !== finalizeStepIndex) return;
+    if (!interactiveRequired || !interactiveDone) return;
+    if (isFinalizing || autoFinalizeStartedRef.current) return;
+    void triggerDone();
+  }, [finalizeStepIndex, interactiveDone, interactiveRequired, isFinalizing, step, triggerDone]);
 
   const isLastNavStep = step === finalizeStepIndex;
 

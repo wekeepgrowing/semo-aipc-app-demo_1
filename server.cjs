@@ -6,6 +6,7 @@ const path = require("path");
 const crypto = require("crypto");
 const { spawn, spawnSync, exec } = require("child_process");
 const { promisify } = require("util");
+const { pathToFileURL } = require("url");
 const pty = require("node-pty");
 const WebSocket = require("ws");
 const mime = require("mime-types");
@@ -91,6 +92,10 @@ const PORT = Number(process.env.SETUP_PORT || "18789");
 const OPENCLAW_PORT = Number(process.env.OPENCLAW_GATEWAY_PORT || "18790");
 const OPENCLAW_NPM_VERSION = process.env.OPENCLAW_NPM_VERSION || "2026.3.2";
 const SKELETON_DIR = "/home-skeleton";
+const RUNTIME_TMP_DIR = process.env.TMPDIR || path.join(OPENCLAW_HOME_DIR, ".tmp");
+const LINUXBREW_PREFIX = "/home/linuxbrew/.linuxbrew";
+const LINUXBREW_BIN = path.join(LINUXBREW_PREFIX, "bin", "brew");
+const LINUXBREW_INSTALL_TIMEOUT_MS = Number(process.env.LINUXBREW_INSTALL_TIMEOUT_MS || "600000");
 const ONBOARDING_CLI_TIMEOUT_MS = Number(process.env.ONBOARDING_CLI_TIMEOUT_MS || "300000");
 const ONBOARDING_SESSION_IDLE_TIMEOUT_MS = Number(process.env.ONBOARDING_SESSION_IDLE_TIMEOUT_MS || "600000");
 const DEFAULT_TOOLS_PROFILE = process.env.OPENCLAW_TOOLS_PROFILE || "full";
@@ -100,6 +105,10 @@ const FIX_ADVANCED_BYPASS_TTL_MS = Number(process.env.FIX_ADVANCED_BYPASS_TTL_MS
 const FIX_DOCTOR_REPAIR_TIMEOUT_MS = Number(process.env.FIX_DOCTOR_REPAIR_TIMEOUT_MS || "45000");
 
 const UI_DIST_CANDIDATES = [path.join(__dirname, "ui", "dist"), path.join(__dirname, "ui-dist")];
+
+process.env.TMPDIR = RUNTIME_TMP_DIR;
+process.env.TMP = RUNTIME_TMP_DIR;
+process.env.TEMP = RUNTIME_TMP_DIR;
 
 const PROVIDER_KEYS = [
   "ANTHROPIC_API_KEY",
@@ -187,6 +196,7 @@ let authProfileHealthCache = {
   ts: 0,
   broken: false,
 };
+let openaiCodexDirectModulesPromise = null;
 
 function sendJson(res, statusCode, data) {
   const payload = JSON.stringify(data);
@@ -260,6 +270,117 @@ function resolveOpenclawInvocation(args = [], env = process.env) {
   }
 
   return { command: "openclaw", args: [...args] };
+}
+
+function safeRealpath(filePath) {
+  try {
+    return fs.realpathSync(filePath);
+  } catch {
+    return null;
+  }
+}
+
+function resolveOpenclawPackageRoot(env = process.env) {
+  const candidates = new Set();
+  const configuredRoot = typeof env.OPENCLAW_PACKAGE_ROOT === "string" ? env.OPENCLAW_PACKAGE_ROOT.trim() : "";
+  if (configuredRoot) candidates.add(path.resolve(configuredRoot));
+
+  const invocation = resolveOpenclawInvocation([], env);
+  const resolvedCommand = safeRealpath(invocation.command) || invocation.command;
+  if (resolvedCommand && path.basename(resolvedCommand) === "openclaw.mjs") {
+    candidates.add(path.dirname(resolvedCommand));
+  }
+  if (resolvedCommand && path.basename(resolvedCommand) === "openclaw") {
+    candidates.add(path.resolve(path.dirname(resolvedCommand), "..", "lib", "node_modules", "openclaw"));
+  }
+
+  const npmRootResult = spawnSync("npm", ["root", "-g"], {
+    cwd: CONFIG_DIR,
+    env: { ...env, PATH: getEnvPath(env) },
+    encoding: "utf8",
+    timeout: 4000,
+  });
+  if (npmRootResult.status === 0) {
+    const npmRoot = String(npmRootResult.stdout || "").trim();
+    if (npmRoot) candidates.add(path.join(npmRoot, "openclaw"));
+  }
+
+  candidates.add("/usr/local/lib/node_modules/openclaw");
+  candidates.add(path.join(DEFAULT_SKILL_NPM_PREFIX, "lib", "node_modules", "openclaw"));
+  candidates.add(path.join(OPENCLAW_HOME_DIR, ".npm-global", "lib", "node_modules", "openclaw"));
+  candidates.add(path.join(CONFIG_DIR, "node_modules", "openclaw"));
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const marker = path.join(candidate, "openclaw.mjs");
+    if (fs.existsSync(marker)) return candidate;
+  }
+  return null;
+}
+
+function resolveOpenclawDistModule(rootDir, prefix) {
+  if (!rootDir) return null;
+  const distDir = path.join(rootDir, "dist");
+  if (!fs.existsSync(distDir)) return null;
+  try {
+    const match = fs
+      .readdirSync(distDir)
+      .filter((entry) => entry.startsWith(prefix) && entry.endsWith(".js"))
+      .sort()[0];
+    return match ? path.join(distDir, match) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function loadOpenAICodexDirectModules() {
+  if (openaiCodexDirectModulesPromise) return openaiCodexDirectModulesPromise;
+
+  openaiCodexDirectModulesPromise = (async () => {
+    const packageRoot = resolveOpenclawPackageRoot(onboardingCliEnv());
+    if (!packageRoot) {
+      throw new Error("OpenClaw package root could not be resolved for direct OpenAI OAuth");
+    }
+
+    const oauthModulePath = path.join(
+      packageRoot,
+      "node_modules",
+      "@mariozechner",
+      "pi-ai",
+      "dist",
+      "utils",
+      "oauth",
+      "openai-codex.js"
+    );
+    const authTokenModulePath = resolveOpenclawDistModule(packageRoot, "auth-token-");
+
+    if (!fs.existsSync(oauthModulePath)) {
+      throw new Error(`OpenAI OAuth helper not found: ${oauthModulePath}`);
+    }
+    if (!authTokenModulePath) {
+      throw new Error("OpenClaw auth-token module not found for direct OpenAI OAuth");
+    }
+
+    const oauthModule = await import(pathToFileURL(oauthModulePath).href);
+    const authTokenModule = await import(pathToFileURL(authTokenModulePath).href);
+    if (typeof oauthModule.loginOpenAICodex !== "function") {
+      throw new Error("loginOpenAICodex export is unavailable");
+    }
+    if (typeof authTokenModule.Ct !== "function" || typeof authTokenModule.d !== "function") {
+      throw new Error("OpenClaw auth profile helpers are unavailable");
+    }
+
+    return {
+      loginOpenAICodex: oauthModule.loginOpenAICodex,
+      writeOAuthCredentials: authTokenModule.Ct,
+      applyAuthProfileConfig: authTokenModule.d,
+    };
+  })().catch((error) => {
+    openaiCodexDirectModulesPromise = null;
+    throw error;
+  });
+
+  return openaiCodexDirectModulesPromise;
 }
 
 function readEnv() {
@@ -413,6 +534,16 @@ function reconcileConfig() {
   if (!config) return;
 
   let changed = false;
+
+  if (config.wizard && typeof config.wizard === "object") {
+    const invalidWizardKeys = ["providerId", "provider", "methodId", "method"];
+    for (const key of invalidWizardKeys) {
+      if (Object.prototype.hasOwnProperty.call(config.wizard, key)) {
+        delete config.wizard[key];
+        changed = true;
+      }
+    }
+  }
 
   if (!config.gateway) config.gateway = {};
   if (!config.gateway.controlUi) config.gateway.controlUi = {};
@@ -2516,31 +2647,83 @@ function startOpenclaw() {
 }
 
 function getActiveInteractiveSnapshot() {
-  const activeSessionId = authSessionManager.getActiveSessionId();
-  if (!activeSessionId) {
+  const activeProcessSessionId = authSessionManager.getActiveSessionId();
+  if (!activeProcessSessionId) {
+    const fallbackContext = [...interactiveAuthContexts.values()]
+      .filter((candidate) => candidate && !candidate.completed)
+      .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0];
+    if (!fallbackContext) {
+      return {
+        activeSessionId: null,
+        activeProviderId: null,
+        activeMethodId: null,
+        interactivePhase: null,
+      };
+    }
     return {
-      activeSessionId: null,
-      activeProviderId: null,
-      activeMethodId: null,
-      interactivePhase: null,
+      activeSessionId: fallbackContext.sessionId || null,
+      activeProviderId: fallbackContext.providerId || null,
+      activeMethodId: fallbackContext.methodId || null,
+      interactivePhase: fallbackContext.lastPhase || null,
     };
   }
 
-  let context = interactiveAuthContexts.get(activeSessionId);
+  let context = interactiveAuthContexts.get(activeProcessSessionId);
   if (!context) {
     for (const candidate of interactiveAuthContexts.values()) {
-      if (getInteractiveProcessSessionId(candidate) === activeSessionId) {
+      if (getInteractiveProcessSessionId(candidate) === activeProcessSessionId) {
         context = candidate;
         break;
       }
     }
   }
   return {
-    activeSessionId,
+    activeSessionId: context?.sessionId || activeProcessSessionId,
     activeProviderId: context?.providerId || null,
     activeMethodId: context?.methodId || null,
     interactivePhase: context?.lastPhase || null,
   };
+}
+
+function hasActiveInteractiveAuthSession() {
+  if (authSessionManager.hasActiveSession()) return true;
+  for (const context of interactiveAuthContexts.values()) {
+    if (context && !context.completed) return true;
+  }
+  return false;
+}
+
+function buildWizardState(providerId, methodId) {
+  void providerId;
+  void methodId;
+  const ts = new Date().toISOString();
+  return {
+    lastRunAt: ts,
+    lastRunVersion: OPENCLAW_NPM_VERSION,
+    lastRunCommand: "onboard",
+    lastRunMode: "local",
+  };
+}
+
+function applyOpenAICodexDirectDefaults(config, providerId, methodId) {
+  const next = config && typeof config === "object" ? config : {};
+  next.meta = {
+    ...(next.meta && typeof next.meta === "object" ? next.meta : {}),
+    lastTouchedVersion: OPENCLAW_NPM_VERSION,
+    lastTouchedAt: new Date().toISOString(),
+  };
+  next.wizard = {
+    ...(next.wizard && typeof next.wizard === "object" ? next.wizard : {}),
+    ...buildWizardState(providerId, methodId),
+  };
+  next.agents = next.agents && typeof next.agents === "object" ? next.agents : {};
+  next.agents.defaults = next.agents.defaults && typeof next.agents.defaults === "object" ? next.agents.defaults : {};
+  next.agents.defaults.model =
+    next.agents.defaults.model && typeof next.agents.defaults.model === "object" ? next.agents.defaults.model : {};
+  if (!next.agents.defaults.model.primary) {
+    next.agents.defaults.model.primary = "openai-codex/gpt-5.3-codex";
+  }
+  return next;
 }
 
 function detectConnectedProviderAndMethod() {
@@ -2554,6 +2737,19 @@ function detectConnectedProviderAndMethod() {
     return {
       providerId: wizardProviderId,
       methodId: wizardMethodId || null,
+      configured: true,
+    };
+  }
+
+  const authProfiles = config?.auth?.profiles && typeof config.auth.profiles === "object" ? config.auth.profiles : {};
+  const hasOpenAICodexOauth = Object.values(authProfiles).some((profile) => {
+    if (!profile || typeof profile !== "object") return false;
+    return String(profile.provider || "").toLowerCase() === "openai-codex" && String(profile.mode || "").toLowerCase() === "oauth";
+  });
+  if (hasOpenAICodexOauth) {
+    return {
+      providerId: "openai",
+      methodId: "openai-codex",
       configured: true,
     };
   }
@@ -3237,6 +3433,61 @@ async function initializeHome() {
     }
   } catch (error) {
     console.error("Failed to initialize home skeleton:", error.message);
+  }
+
+  try {
+    await ensureRuntimeTmpDir();
+  } catch (error) {
+    console.error("Failed to initialize runtime temp dir:", error.message);
+  }
+
+  try {
+    await ensureLinuxbrewInstalled();
+  } catch (error) {
+    console.error("Failed to bootstrap Linuxbrew:", error.message);
+  }
+}
+
+async function ensureRuntimeTmpDir() {
+  const tempDir = process.env.TMPDIR || RUNTIME_TMP_DIR;
+  await fsp.mkdir(tempDir, { recursive: true });
+  await fsp.access(tempDir, fs.constants.W_OK);
+  return tempDir;
+}
+
+async function ensureLinuxbrewInstalled() {
+  try {
+    await fsp.access(LINUXBREW_BIN);
+    return false;
+  } catch {}
+
+  console.log("Linuxbrew not found, bootstrapping runtime install");
+  await execAsync("sudo mkdir -p /home/linuxbrew", {
+    env: process.env,
+    timeout: Math.max(30_000, Math.min(LINUXBREW_INSTALL_TIMEOUT_MS, 120_000)),
+    maxBuffer: 1024 * 1024 * 4,
+  });
+
+  const installEnv = {
+    ...process.env,
+    HOME: process.env.HOME || "/data",
+    NONINTERACTIVE: "1",
+    CI: "1",
+    HOMEBREW_NO_ANALYTICS: "1",
+  };
+
+  await execAsync('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"', {
+    env: installEnv,
+    timeout: LINUXBREW_INSTALL_TIMEOUT_MS,
+    maxBuffer: 1024 * 1024 * 16,
+  });
+
+  try {
+    await fsp.access(LINUXBREW_BIN);
+    console.log("Linuxbrew runtime install completed");
+    return true;
+  } catch {
+    throw new Error("Linuxbrew bootstrap finished without brew binary");
   }
 }
 
@@ -4601,8 +4852,8 @@ function getOnboardingStatePayload() {
   return {
     ok: true,
     configured: isConfigured(),
-    onboardingInProgress: Boolean(terminalOnboardingPty || authSessionManager.hasActiveSession()),
-    interactiveAuthInProgress: authSessionManager.hasActiveSession(),
+    onboardingInProgress: Boolean(terminalOnboardingPty || hasActiveInteractiveAuthSession()),
+    interactiveAuthInProgress: hasActiveInteractiveAuthSession(),
     mode: terminalOnboardingPty ? "terminal" : "gui",
     lastErrorCode: lastOnboardingErrorCode,
     gatewayRunning: Boolean(openclawProcess),
@@ -4640,7 +4891,15 @@ function closeTerminalOnboarding(reason = "replaced") {
 }
 
 function getInteractiveContext(sessionId) {
-  return interactiveAuthContexts.get(sessionId) || null;
+  const direct = interactiveAuthContexts.get(sessionId);
+  if (direct) return direct;
+
+  for (const candidate of interactiveAuthContexts.values()) {
+    if (getInteractiveProcessSessionId(candidate) === sessionId) {
+      return candidate;
+    }
+  }
+  return null;
 }
 
 function stripAnsi(value) {
@@ -4751,6 +5010,17 @@ function maybeAutoAdvanceInteractivePrompt(context) {
     if (sendInteractiveSessionInput(getInteractiveProcessSessionId(context), "\r")) {
       context.autoInputs.configHandling = true;
       context.lastMessage = "설정 처리 단계를 기본값으로 진행해요";
+    }
+  }
+
+  if (
+    !context.autoInputs.spaceSelectSubmit &&
+    /press space to select,\s*enter to submit/i.test(buffer)
+  ) {
+    if (sendInteractiveSessionInput(getInteractiveProcessSessionId(context), " \r")) {
+      context.autoInputs.spaceSelectSubmit = true;
+      context.lastMessage = "선택 확인 단계를 기본값으로 자동 진행해요";
+      return;
     }
   }
 
@@ -4889,6 +5159,228 @@ function buildInteractiveAuthStatusPayload(context) {
     gatewayRunning: Boolean(openclawProcess),
     ts: Date.now(),
   };
+}
+
+function getMainAuthAgentDir() {
+  return path.join(CONFIG_DIR, "agents", "main", "agent");
+}
+
+function settleDirectInteractiveContext(context, result) {
+  if (!context || context.completed) return;
+  const state = result?.state || "failed";
+  const code = result?.code || (state === "timeout" ? "timeout" : state === "cancelled" ? "interactive_cancelled" : "cli_failed");
+  const message = result?.message || "인증 세션을 완료하지 못했어요";
+
+  updateInteractiveContextState(context, state, {
+    lastErrorCode: state === "configured" ? null : code,
+    lastMessage: message,
+    requiresRedirectInput: false,
+    phase:
+      state === "configured"
+        ? "configured"
+        : state === "finalizing"
+          ? "finalize_onboarding"
+          : state === "auth_completed"
+            ? "interactive_auth_completed"
+            : context.lastPhase,
+  });
+
+  if (state === "configured") {
+    broadcastContext(context, { type: "phase", phase: "configured" });
+    broadcastContext(context, { type: "exit", code: 0, configured: true });
+    lastOnboardingErrorCode = null;
+  } else {
+    if (result?.phase) {
+      broadcastContext(context, { type: "phase", phase: result.phase });
+    }
+    broadcastContext(context, {
+      type: "error",
+      code,
+      message,
+    });
+    broadcastContext(context, { type: "exit", code: 1, configured: false });
+    lastOnboardingErrorCode = code;
+  }
+
+  context.completed = true;
+  context.resolveManualInput = null;
+  context.rejectManualInput = null;
+  finalizeContextLater(context.sessionId);
+}
+
+function cancelDirectInteractiveContext(context, reason = "interactive_cancelled") {
+  if (!context || context.strategy !== "openai_direct") return false;
+  const code = reason === "timeout" ? "timeout" : "interactive_cancelled";
+  const message = reason === "timeout" ? "인증 세션 시간이 초과됐어요" : "인증 세션이 취소됐어요";
+  try {
+    if (typeof context.rejectManualInput === "function") {
+      const error = new Error(message);
+      error.code = code;
+      context.rejectManualInput(error);
+    }
+  } catch {}
+  settleDirectInteractiveContext(context, {
+    state: reason === "timeout" ? "timeout" : "cancelled",
+    code,
+    message,
+  });
+  return true;
+}
+
+async function startOpenAICodexDirectInteractiveFlow({ providerId, methodId, method, maskValues }) {
+  const modules = await loadOpenAICodexDirectModules();
+  ensureConfigDir();
+  fs.mkdirSync(getMainAuthAgentDir(), { recursive: true });
+
+  const sessionId = crypto.randomUUID();
+  const context = {
+    sessionId,
+    processSessionId: sessionId,
+    strategy: "openai_direct",
+    providerId,
+    methodId,
+    method,
+    clients: new Set(),
+    lastPhase: "interactive_auth_started",
+    lastEvent: null,
+    createdAt: Date.now(),
+    completed: false,
+    state: "starting",
+    authUrl: null,
+    requiresRedirectInput: false,
+    lastMessage: "인증 세션을 시작했어요",
+    lastErrorCode: null,
+    outputBuffer: "",
+    autoInputs: {},
+    commandMode: "quickstart",
+    fallbackCommand: null,
+    retryUsed: false,
+    authUrlReadyAt: null,
+    redirectPromptScanOffset: 0,
+    resolveManualInput: null,
+    rejectManualInput: null,
+  };
+
+  interactiveAuthContexts.set(sessionId, context);
+  updateInteractiveContextState(context, "starting", {
+    phase: "interactive_auth_started",
+    lastMessage: "인증 세션을 시작했어요",
+  });
+  broadcastContext(context, { type: "phase", phase: "interactive_auth_started" });
+
+  const manualInputPromise = new Promise((resolve, reject) => {
+    context.resolveManualInput = resolve;
+    context.rejectManualInput = reject;
+  });
+
+  context.runPromise = (async () => {
+    try {
+      const creds = await modules.loginOpenAICodex({
+        onAuth: ({ url }) => {
+          if (context.completed) return;
+          if (!context.authUrlReadyAt) context.authUrlReadyAt = Date.now();
+          updateInteractiveContextState(context, "auth_url_ready", {
+            authUrl: url,
+            requiresRedirectInput: false,
+            lastMessage: "브라우저 인증 링크가 준비됐으니 로그인 후 돌아와 주세요",
+          });
+        },
+        onPrompt: async () => {
+          if (context.completed) {
+            throw Object.assign(new Error("interactive auth session cancelled"), { code: "interactive_cancelled" });
+          }
+          updateInteractiveContextState(context, "awaiting_redirect_input", {
+            requiresRedirectInput: true,
+            lastMessage: "브라우저 로그인 완료 후 리디렉트 URL을 입력해 주세요",
+          });
+          return await manualInputPromise;
+        },
+        onProgress: (message) => {
+          if (!context.completed && message) {
+            context.lastMessage = maskSecrets(String(message), maskValues);
+          }
+        },
+        onManualCodeInput: async () => {
+          if (context.completed) {
+            throw Object.assign(new Error("interactive auth session cancelled"), { code: "interactive_cancelled" });
+          }
+          updateInteractiveContextState(context, "awaiting_redirect_input", {
+            requiresRedirectInput: true,
+            lastMessage: "브라우저 로그인 완료 후 리디렉트 URL을 입력해 주세요",
+          });
+          return await manualInputPromise;
+        },
+      });
+
+      if (context.completed) return;
+
+      updateInteractiveContextState(context, "auth_completed", {
+        phase: "interactive_auth_completed",
+        lastMessage: "인증이 완료됐어요",
+        requiresRedirectInput: false,
+      });
+      broadcastContext(context, { type: "phase", phase: "interactive_auth_completed" });
+      updateInteractiveContextState(context, "finalizing", {
+        phase: "finalize_onboarding",
+        lastMessage: "설정을 마무리하고 있어요",
+        requiresRedirectInput: false,
+      });
+      broadcastContext(context, { type: "phase", phase: "finalize_onboarding" });
+
+      const profileId = await modules.writeOAuthCredentials("openai-codex", creds, getMainAuthAgentDir(), {
+        syncSiblingAgents: true,
+      });
+      let config = applyOpenAICodexDirectDefaults(readConfig() || {}, providerId, methodId);
+      config = modules.applyAuthProfileConfig(config, {
+        profileId,
+        provider: "openai-codex",
+        mode: "oauth",
+      });
+      writeConfig(config);
+
+      const finalizeCommand = buildFinalizeOnboardCommand({
+        openclawPort: OPENCLAW_PORT,
+        method,
+      });
+      const finalizeResult = await runCliCommand({
+        command: finalizeCommand.command,
+        args: finalizeCommand.args,
+        cwd: CONFIG_DIR,
+        env: onboardingCliEnv(),
+        timeoutMs: ONBOARDING_CLI_TIMEOUT_MS,
+        maskValues,
+      });
+      if (!finalizeResult.ok) {
+        const failure = summarizeCliFailure(finalizeResult, maskValues);
+        settleDirectInteractiveContext(context, {
+          state: failure.code === "timeout" ? "timeout" : "failed",
+          code: failure.code,
+          message: failure.message,
+        });
+        return;
+      }
+
+      const finalizedConfig = applyOpenAICodexDirectDefaults(readConfig() || config, providerId, methodId);
+      writeConfig(finalizedConfig);
+      reconcileConfig();
+      if (isConfigured()) startOpenclaw();
+
+      settleDirectInteractiveContext(context, {
+        state: "configured",
+        message: "인증 및 설정이 완료됐어요",
+      });
+    } catch (error) {
+      if (context.completed) return;
+      const code = error?.code === "timeout" ? "timeout" : error?.code === "interactive_cancelled" ? "interactive_cancelled" : "cli_failed";
+      settleDirectInteractiveContext(context, {
+        state: code === "timeout" ? "timeout" : code === "interactive_cancelled" ? "cancelled" : "failed",
+        code,
+        message: maskSecrets(error?.message || "interactive auth command failed", maskValues),
+      });
+    }
+  })();
+
+  return context;
 }
 
 function sendWsMessage(ws, message) {
@@ -5121,6 +5613,35 @@ async function handleOnboardingApply(req, res) {
   }
 
   if (method.mode === "interactive_required") {
+    if (method.id === "openai-codex") {
+      try {
+        const context = await startOpenAICodexDirectInteractiveFlow({
+          providerId,
+          methodId,
+          method,
+          maskValues,
+        });
+        lastOnboardingErrorCode = null;
+        return sendJson(res, 200, {
+          ok: true,
+          status: "interactive_required",
+          sessionId: context.sessionId,
+          auth: {
+            state: context.state,
+            authUrl: context.authUrl,
+            commandMode: context.commandMode,
+          },
+        });
+      } catch (error) {
+        lastOnboardingErrorCode = "cli_failed";
+        return sendJson(res, 502, {
+          ok: false,
+          code: "cli_failed",
+          error: maskSecrets(error?.message || "failed to start interactive session", maskValues),
+        });
+      }
+    }
+
     const interactiveCommand = buildInteractiveAuthCommand({
       openclawPort: OPENCLAW_PORT,
       method,
@@ -5521,15 +6042,34 @@ onboardingAuthWss.on("connection", (ws, req, sessionId) => {
     try {
       const msg = JSON.parse(raw.toString());
       if (msg.type === "input") {
-        authSessionManager.sendInput(getInteractiveProcessSessionId(context, sessionId), String(msg.data || ""));
+        if (context.strategy === "openai_direct") {
+          if (typeof context.resolveManualInput === "function") {
+            const text = String(msg.data || "");
+            context.resolveManualInput(text);
+            context.resolveManualInput = null;
+            context.rejectManualInput = null;
+            updateInteractiveContextState(context, "finalizing", {
+              requiresRedirectInput: false,
+              lastMessage: "리디렉트 URL을 전달했고 인증 완료를 확인하고 있어요",
+            });
+          }
+        } else {
+          authSessionManager.sendInput(getInteractiveProcessSessionId(context, sessionId), String(msg.data || ""));
+        }
       } else if (msg.type === "resize") {
-        authSessionManager.resizeSession(
-          getInteractiveProcessSessionId(context, sessionId),
-          Number(msg.cols) || 96,
-          Number(msg.rows) || 30
-        );
+        if (context.strategy !== "openai_direct") {
+          authSessionManager.resizeSession(
+            getInteractiveProcessSessionId(context, sessionId),
+            Number(msg.cols) || 96,
+            Number(msg.rows) || 30
+          );
+        }
       } else if (msg.type === "cancel") {
-        authSessionManager.cancelSession(getInteractiveProcessSessionId(context, sessionId), "interactive_cancelled");
+        if (context.strategy === "openai_direct") {
+          cancelDirectInteractiveContext(context, "interactive_cancelled");
+        } else {
+          authSessionManager.cancelSession(getInteractiveProcessSessionId(context, sessionId), "interactive_cancelled");
+        }
       }
     } catch {
       // Ignore malformed payloads.
@@ -5583,8 +6123,8 @@ const server = http.createServer(async (req, res) => {
       service: "openclaw-ui-gateway",
       configured: isConfigured(),
       gatewayRunning: Boolean(openclawProcess),
-      onboardingInProgress: Boolean(terminalOnboardingPty || authSessionManager.hasActiveSession()),
-      interactiveAuthInProgress: authSessionManager.hasActiveSession(),
+      onboardingInProgress: Boolean(terminalOnboardingPty || hasActiveInteractiveAuthSession()),
+      interactiveAuthInProgress: hasActiveInteractiveAuthSession(),
       lastErrorCode: lastOnboardingErrorCode,
       activeSessionId: active.activeSessionId,
       activeProviderId: active.activeProviderId,
@@ -5687,7 +6227,11 @@ const server = http.createServer(async (req, res) => {
         lastErrorCode: "timeout",
         lastMessage: "인증 링크 준비 시간이 초과돼서 다시 시도해 주세요",
       });
-      authSessionManager.cancelSession(getInteractiveProcessSessionId(context, sessionId), "timeout");
+      if (context.strategy === "openai_direct") {
+        cancelDirectInteractiveContext(context, "timeout");
+      } else {
+        authSessionManager.cancelSession(getInteractiveProcessSessionId(context, sessionId), "timeout");
+      }
     }
 
     return sendJson(res, 200, buildInteractiveAuthStatusPayload(context));
@@ -5712,7 +6256,9 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 422, { ok: false, code: "invalid_input", error: "invalid json body" });
     }
 
-    const text = typeof payload?.text === "string" ? payload.text.trim() : "";
+    const preserveWhitespace = Boolean(payload?.preserveWhitespace);
+    const rawText = typeof payload?.text === "string" ? payload.text : "";
+    const text = preserveWhitespace ? rawText : rawText.trim();
     if (!text) {
       return sendJson(res, 422, {
         ok: false,
@@ -5721,7 +6267,17 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    const accepted = authSessionManager.sendInput(getInteractiveProcessSessionId(context, sessionId), `${text}\r`);
+    let accepted = false;
+    if (context.strategy === "openai_direct") {
+      if (typeof context.resolveManualInput === "function") {
+        context.resolveManualInput(text);
+        context.resolveManualInput = null;
+        context.rejectManualInput = null;
+        accepted = true;
+      }
+    } else {
+      accepted = authSessionManager.sendInput(getInteractiveProcessSessionId(context, sessionId), `${text}\r`);
+    }
     if (!accepted) {
       return sendJson(res, 409, {
         ok: false,
@@ -5730,11 +6286,18 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    context.redirectPromptScanOffset = String(context.outputBuffer || "").length;
-    updateInteractiveContextState(context, "finalizing", {
-      requiresRedirectInput: false,
-      lastMessage: "리디렉트 URL을 전달했고 인증 완료를 확인하고 있어요",
-    });
+    if (preserveWhitespace) {
+      updateInteractiveContextState(context, context.state || "finalizing", {
+        requiresRedirectInput: false,
+        lastMessage: "추가 확인 단계를 진행하고 있어요",
+      });
+    } else {
+      context.redirectPromptScanOffset = String(context.outputBuffer || "").length;
+      updateInteractiveContextState(context, "finalizing", {
+        requiresRedirectInput: false,
+        lastMessage: "리디렉트 URL을 전달했고 인증 완료를 확인하고 있어요",
+      });
+    }
 
     return sendJson(res, 200, {
       ok: true,
@@ -5759,7 +6322,10 @@ const server = http.createServer(async (req, res) => {
       lastMessage: "인증 세션이 취소됐어요",
     });
 
-    const cancelled = authSessionManager.cancelSession(getInteractiveProcessSessionId(context, sessionId), "interactive_cancelled");
+    const cancelled =
+      context.strategy === "openai_direct"
+        ? cancelDirectInteractiveContext(context, "interactive_cancelled")
+        : authSessionManager.cancelSession(getInteractiveProcessSessionId(context, sessionId), "interactive_cancelled");
     if (!cancelled) {
       return sendJson(res, 409, {
         ok: false,
@@ -5787,7 +6353,7 @@ const server = http.createServer(async (req, res) => {
     const sessionId =
       typeof payload.sessionId === "string" && payload.sessionId.trim()
         ? payload.sessionId.trim()
-        : authSessionManager.getActiveSessionId();
+        : getActiveInteractiveSnapshot().activeSessionId;
 
     if (!sessionId) {
       return sendJson(res, 404, {
@@ -5805,7 +6371,10 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    const cancelled = authSessionManager.cancelSession(getInteractiveProcessSessionId(context, sessionId), "interactive_cancelled");
+    const cancelled =
+      context?.strategy === "openai_direct"
+        ? cancelDirectInteractiveContext(context, "interactive_cancelled")
+        : authSessionManager.cancelSession(getInteractiveProcessSessionId(context, sessionId), "interactive_cancelled");
     if (!cancelled) {
       return sendJson(res, 404, {
         ok: false,
