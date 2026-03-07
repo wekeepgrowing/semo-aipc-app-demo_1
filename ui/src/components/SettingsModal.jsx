@@ -211,12 +211,12 @@ function resolveFeatureStatusBadge(status, pending) {
 
 function resolveFeatureStatusMessage(status) {
   if (!status || typeof status !== "object") return "";
-  if (status.errorCode === "feature_contract_unsupported") return "현재 OpenClaw 버전에서는 이 기능 제어를 지원하지 않아 업그레이드가 필요해요";
+  if (status.errorCode === "feature_contract_unsupported") return "현재 Semo AI 버전에서는 이 기능 제어를 지원하지 않아 업그레이드가 필요해요";
   if (status.lastError) return status.lastError;
-  if (status.supported === false) return "현재 OpenClaw가 이 기능을 지원하지 않아요";
-  if (status.confirmedEnabled) return "이 기능은 현재 OpenClaw에서 활성 상태로 확인됐어요";
-  if (status.supported === true) return "OpenClaw에서 지원되지만 현재는 꺼져 있어요";
-  return "OpenClaw 기능 상태를 아직 확인하지 못했어요";
+  if (status.supported === false) return "현재 Semo AI가 이 기능을 지원하지 않아요";
+  if (status.confirmedEnabled) return "이 기능은 현재 Semo AI에서 활성 상태로 확인됐어요";
+  if (status.supported === true) return "Semo AI에서 지원되지만 현재는 꺼져 있어요";
+  return "Semo AI 기능 상태를 아직 확인하지 못했어요";
 }
 
 function Toggle({ checked, onChange, ariaLabel, disabled = false }) {
@@ -275,6 +275,34 @@ function formatDateTime(value) {
   const ts = Number(value);
   if (!Number.isFinite(ts) || ts <= 0) return "-";
   return new Date(ts).toLocaleString("ko-KR");
+}
+
+function humanizeMethodLabel(method) {
+  if (method?.label) return String(method.label);
+  const methodId = String(method?.id || "").trim().toLowerCase();
+  if (!methodId) return "알 수 없음";
+  if (methodId.includes("oauth")) return "OAuth 연결";
+  if (methodId.includes("interactive")) return "브라우저 인증";
+  if (methodId.includes("api") || methodId.includes("key")) return "API 키";
+  return methodId;
+}
+
+function humanizeRuntimeSourceLabel(source) {
+  const id = String(source || "").trim().toLowerCase();
+  if (id === "gateway_status") return "현재 Semo AI 세션 기준";
+  if (id === "session_log") return "최근 Semo AI 대화 기준";
+  if (id === "usage_ledger") return "최근 실행 기록 기준";
+  return "최근 Semo AI 기준";
+}
+
+function formatRuntimeModelLabel(runtimeModel) {
+  if (!runtimeModel || typeof runtimeModel !== "object") return "아직 확인되지 않음";
+  const model = String(runtimeModel.model || "").trim();
+  const api = String(runtimeModel.api || "").trim();
+  if (model && api && api !== model) return `${model} · ${api}`;
+  if (model) return model;
+  if (api) return api;
+  return "아직 확인되지 않음";
 }
 
 function resolveFixDiagnosisPreview(preview) {
@@ -343,7 +371,7 @@ export default function SettingsModal({
   const [loadError, setLoadError] = useState("");
   const [providers, setProviders] = useState([]);
   const [connected, setConnected] = useState({ providerId: null, methodId: null, configured: false });
-  const [defaultModel, setDefaultModel] = useState("");
+  const [runtimeModel, setRuntimeModel] = useState(null);
 
   const [selectedProviderId, setSelectedProviderId] = useState("");
   const [selectedMethodId, setSelectedMethodId] = useState("");
@@ -405,7 +433,7 @@ export default function SettingsModal({
 
       setProviders(nextProviders);
       setConnected(json.connected || { providerId: null, methodId: null, configured: false });
-      setDefaultModel(json.defaults?.defaultModel || "");
+      setRuntimeModel(json.runtimeModel && typeof json.runtimeModel === "object" ? json.runtimeModel : null);
       setSelectedProviderId(providerId);
       setSelectedMethodId(methodId);
       setCredentials({});
@@ -485,6 +513,29 @@ export default function SettingsModal({
     () => selectedProvider?.methods?.find((method) => method.id === selectedMethodId) || null,
     [selectedProvider, selectedMethodId]
   );
+  const connectedProvider = useMemo(
+    () => providers.find((provider) => provider.id === connected?.providerId) || null,
+    [providers, connected?.providerId]
+  );
+  const connectedMethod = useMemo(
+    () => connectedProvider?.methods?.find((method) => method.id === connected?.methodId) || null,
+    [connected?.methodId, connectedProvider]
+  );
+  const runtimeProvider = useMemo(
+    () => providers.find((provider) => provider.id === runtimeModel?.provider) || null,
+    [providers, runtimeModel?.provider]
+  );
+  const connectedProviderLabel = connectedProvider?.label || connected?.providerId || "알 수 없음";
+  const connectedMethodLabel = humanizeMethodLabel(connectedMethod || { id: connected?.methodId, label: connected?.methodId });
+  const runtimeProviderLabel = runtimeProvider?.label || runtimeModel?.provider || "";
+  const runtimeServiceLabel =
+    connected?.providerId && connected?.configured
+      ? connectedProviderLabel
+      : runtimeProviderLabel || (connected?.configured ? "Semo AI" : "미연결");
+  const connectedServiceSummaryLabel = connected?.providerId ? connectedProviderLabel : runtimeServiceLabel;
+  const connectedModelLabel = formatRuntimeModelLabel(runtimeModel);
+  const runtimeSourceLabel = runtimeModel ? humanizeRuntimeSourceLabel(runtimeModel.source) : "실행 기록 없음";
+  const runtimeObservedLabel = runtimeModel?.ts ? formatDateTime(runtimeModel.ts) : "아직 없음";
 
   useEffect(() => {
     if (!selectedProvider) return;
@@ -644,8 +695,8 @@ export default function SettingsModal({
         [
           json?.restart?.requested
             ? json?.restart?.ok === false
-              ? "값은 저장했지만 OpenClaw 재시작은 확인되지 않았어요"
-              : "값을 저장했고 OpenClaw를 다시 불러왔어요"
+              ? "값은 저장했지만 Semo AI 재시작은 확인되지 않았어요"
+              : "값을 저장했고 Semo AI를 다시 불러왔어요"
             : "값을 저장했어요",
           ...successSideEffectMessages,
         ]
@@ -1038,10 +1089,38 @@ export default function SettingsModal({
                   <div>
                     <p className="name">현재 연결</p>
                     <p className="desc">
-                      {connected?.configured
-                        ? `${connected.providerId || "알 수 없음"} / ${connected.methodId || "알 수 없음"}`
-                        : "연결한 서비스가 아직 없어요"}
+                      {runtimeModel
+                        ? `${runtimeSourceLabel}으로 실제 실행 모델을 확인했어요`
+                        : connected?.configured
+                          ? `${connectedServiceSummaryLabel}로 연결되어 있지만 아직 실제 실행 모델 기록은 없어요`
+                          : "연결한 서비스가 아직 없어요"}
                     </p>
+                  </div>
+                  {runtimeModel ? (
+                    <span className="dash-modal-connection-state">실행 기준</span>
+                  ) : connected?.configured ? (
+                    <span className="dash-modal-connection-state">사용 중</span>
+                  ) : null}
+                </article>
+
+                <article className="dash-modal-general-card dash-modal-connection-card">
+                  <div className="dash-modal-connection-grid">
+                    <div className="dash-modal-connection-item">
+                      <span>연결 서비스</span>
+                      <strong>{runtimeServiceLabel}</strong>
+                    </div>
+                    <div className="dash-modal-connection-item">
+                      <span>연결 방식</span>
+                      <strong>{connected?.configured ? connectedMethodLabel : "-"}</strong>
+                    </div>
+                    <div className="dash-modal-connection-item">
+                      <span>실제 실행 모델</span>
+                      <strong>{connectedModelLabel}</strong>
+                    </div>
+                    <div className="dash-modal-connection-item">
+                      <span>관측 기준</span>
+                      <strong>{runtimeModel ? `${runtimeSourceLabel} · ${runtimeObservedLabel}` : "아직 없음"}</strong>
+                    </div>
                   </div>
                 </article>
 
@@ -1148,8 +1227,8 @@ export default function SettingsModal({
                 </button>
 
                 <div className="dash-modal-field">
-                  <label htmlFor="default-model">기본 모델(읽기)</label>
-                  <input id="default-model" value={defaultModel || "설정 없음"} readOnly />
+                  <label htmlFor="default-model">최근 Semo AI 실행 모델(읽기)</label>
+                  <input id="default-model" value={connectedModelLabel} readOnly />
                 </div>
               </div>
             ) : null}
@@ -1158,14 +1237,14 @@ export default function SettingsModal({
               <div className="dash-modal-stack">
                 <SectionHeader
                   title="스킬 환경 변수"
-                  description="스킬별 API 키나 OAuth 자격증명을 저장하고 바로 OpenClaw에 반영해요"
+                  description="스킬별 API 키나 OAuth 자격증명을 저장하고 바로 Semo AI에 반영해요"
                   onClose={() => onOpenChange(false)}
                 />
 
                 <article className="dash-modal-general-card dash-modal-skillenv-summary">
                   <div>
                     <p className="name">저장 방식</p>
-                    <p className="desc">값은 OpenClaw `.env`에 저장되고 저장 직후 게이트웨이를 다시 불러와요</p>
+                    <p className="desc">값은 Semo AI `.env`에 저장되고 저장 직후 게이트웨이를 다시 불러와요</p>
                   </div>
                 </article>
 
@@ -1339,11 +1418,11 @@ export default function SettingsModal({
               <div className="dash-modal-stack">
                 <SectionHeader
                   title="일반"
-                  description="OpenClaw 기능을 켜고 끄는 설정이에요"
+                  description="Semo AI 기능을 켜고 끄는 설정이에요"
                   onClose={() => onOpenChange(false)}
                 />
 
-                {!loading && !connected?.configured ? <p className="error-text">OpenClaw를 연결하면 기능 토글을 쓸 수 있어요</p> : null}
+                {!loading && !connected?.configured ? <p className="error-text">Semo AI를 연결하면 기능 토글을 쓸 수 있어요</p> : null}
 
                 {features.map((feature) => {
                   const pending = Boolean(featurePendingMap[feature.id]);

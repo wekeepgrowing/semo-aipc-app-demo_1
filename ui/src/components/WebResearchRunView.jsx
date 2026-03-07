@@ -9,6 +9,7 @@ import {
   FileText,
   Loader2,
   MessageSquareText,
+  Terminal,
   TriangleAlert,
   UserRound,
   X,
@@ -73,23 +74,44 @@ function getRoleMeta(role) {
 
 function getPhaseState({ phase, task, run, reviewTask }) {
   const status = String(task?.status || "pending");
-  const isReviewStep = Boolean(reviewTask?.id) && reviewTask.id === task?.id;
+  const role = String(task?.role || "");
+  const capturedPrompt = String(task?.result?.capturedPrompt || run?.prompt || "").trim();
+  const pauseReason =
+    String(run?.pauseState?.taskId || "") === String(task?.id || "")
+      ? String(run?.pauseState?.reason || "").trim().toLowerCase()
+      : "";
+  const isReviewStep =
+    role === "Review Needed" &&
+    ((Boolean(reviewTask?.id) && reviewTask.id === task?.id && status === "paused") || pauseReason === "review");
 
   if (status === "completed") {
     return {
       key: "done",
       label: "완료",
       detailLabel: "작업이 완료됐어요",
-      description: truncateText(task?.text || phase?.title || "단계를 완료했어요"),
+      description: truncateText(
+        role === "Human" && capturedPrompt ? capturedPrompt : task?.text || phase?.title || "단계를 완료했어요"
+      ),
     };
   }
 
-  if (isReviewStep || task?.role === "Review Needed" || status === "paused") {
+  if (isReviewStep) {
     return {
       key: "review",
       label: "검토",
       detailLabel: "승인 대기",
       description: "검토를 마치면 최종 결과를 확정해요",
+    };
+  }
+
+  if (status === "paused" || pauseReason === "error") {
+    return {
+      key: "paused",
+      label: "확인 필요",
+      detailLabel: "실행 중단",
+      description: truncateText(
+        run?.pauseState?.whyHuman || task?.result?.error || task?.text || phase?.title || "실행 상태 확인이 필요해요",
+      ),
     };
   }
 
@@ -112,7 +134,7 @@ function getPhaseState({ phase, task, run, reviewTask }) {
 
 function buildTranscriptLog(entry) {
   const roleLabel =
-    entry?.role === "human" ? "Human" : entry?.role === "system" ? "System" : "OpenClaw";
+    entry?.role === "human" ? "Human" : entry?.role === "system" ? "System" : "Semo AI";
   const kindLabel =
     entry?.kind === "input"
       ? "입력"
@@ -123,6 +145,62 @@ function buildTranscriptLog(entry) {
           : "이벤트";
 
   return `${roleLabel} ${kindLabel}: ${truncateText(entry?.text || "-", 180)}`;
+}
+
+function buildSyntheticScopePhase(run) {
+  const promptText = String(run?.prompt || run?.normalizedInput?.topic || "웹 리서치 요청").trim() || "웹 리서치 요청";
+  const taskId = `synthetic-phase-scope-${String(run?.id || "run")}`;
+  return {
+    id: "phase_scope",
+    index: 1,
+    title: "범위 및 기준 확인",
+    role: "Human",
+    tasks: [
+      {
+        id: taskId,
+        phaseId: "phase_scope",
+        phaseTitle: "범위 및 기준 확인",
+        phaseIndex: 1,
+        index: 1,
+        title: "사용자 요청 범위와 조사 기준 확정",
+        text: "사용자 요청 범위와 조사 기준 확정",
+        role: "Human",
+        status: "completed",
+        done: true,
+        whyHuman: "입력된 자연어 요청을 기준으로 조사 범위를 확정해요",
+        assignee: "담당자 지정",
+        assigneeType: "person",
+        result: {
+          capturedPrompt: promptText,
+          completedAt: Number(run?.createdAt || Date.now()),
+        },
+        review: null,
+        comments: [],
+      },
+    ],
+  };
+}
+
+function ensureWebResearchPhases(run) {
+  const phases = Array.isArray(run?.wbs?.phases) ? run.wbs.phases : [];
+  if (String(run?.usecaseId || "") !== "web_research") return phases;
+  const hasScopePhase = phases.some((phase) => String(phase?.id || "") === "phase_scope");
+  const hasScopeTask = Array.isArray(run?.tasks)
+    ? run.tasks.some((task) => String(task?.phaseId || "") === "phase_scope" || String(task?.role || "") === "Human")
+    : false;
+  if (hasScopePhase || hasScopeTask) {
+    return phases.map((phase, index) => ({
+      ...phase,
+      index: index + 1,
+    }));
+  }
+  return [
+    buildSyntheticScopePhase(run),
+    ...phases.map((phase, index) => ({
+      ...phase,
+      index: index + 2,
+    })),
+  ];
 }
 
 function StepStatusBadge({ state }) {
@@ -149,6 +227,14 @@ function StepIcon({ stateKey }) {
   if (stateKey === "review") {
     return (
       <div className="dash-run-monitor-icon review">
+        <TriangleAlert size={16} />
+      </div>
+    );
+  }
+
+  if (stateKey === "paused") {
+    return (
+      <div className="dash-run-monitor-icon paused">
         <TriangleAlert size={16} />
       </div>
     );
@@ -231,6 +317,7 @@ function AnimatedResultButton({ isVisible, onClick }) {
 function MarkdownViewerModal({
   content,
   fileName,
+  executionRows = [],
   onClose,
   onCopy,
   onDownload,
@@ -239,9 +326,11 @@ function MarkdownViewerModal({
   openInChatPending,
 }) {
   const [activeTab, setActiveTab] = useState("preview");
+  const [activePanel, setActivePanel] = useState("logs");
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const backdropRef = useRef(null);
+  const logsEndRef = useRef(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsVisible(true), 10);
@@ -261,6 +350,11 @@ function MarkdownViewerModal({
     };
   }, []);
 
+  useEffect(() => {
+    if (!logsEndRef.current) return;
+    logsEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [executionRows]);
+
   const handleClose = () => {
     setIsClosing(true);
     setIsVisible(false);
@@ -269,6 +363,7 @@ function MarkdownViewerModal({
 
   const lineCount = content.split("\n").length;
   const charCount = content.length;
+  const logCount = executionRows.length;
 
   return (
     <div
@@ -286,83 +381,130 @@ function MarkdownViewerModal({
               <span />
               <span />
             </div>
-            <div className="dash-run-md-modal-file-name">
-              <FileText size={14} />
-              <span>{fileName}</span>
+            <div className="dash-run-md-modal-head-copy">
+              <span>프로세스 실행 결과</span>
             </div>
           </div>
 
           <div className="dash-run-md-modal-head-actions">
-            <div className="dash-run-md-modal-tabs" role="tablist" aria-label="Result preview tabs">
-              <button
-                type="button"
-                className={activeTab === "preview" ? "active" : ""}
-                onClick={() => setActiveTab("preview")}
-              >
-                Preview
-              </button>
-              <button
-                type="button"
-                className={activeTab === "raw" ? "active" : ""}
-                onClick={() => setActiveTab("raw")}
-              >
-                Raw
-              </button>
-            </div>
-
-            <button type="button" className="dash-run-md-modal-icon-btn" onClick={onCopy} title="복사">
-              {copyState === "done" ? <Check size={15} /> : <Copy size={15} />}
-            </button>
-            <button type="button" className="dash-run-md-modal-icon-btn" onClick={onDownload} title="다운로드">
-              <Download size={15} />
-            </button>
             <button type="button" className="dash-run-md-modal-icon-btn" onClick={handleClose} title="닫기">
               <X size={16} />
             </button>
           </div>
         </div>
 
-        <div className="dash-run-md-modal-body">
-          {activeTab === "preview" ? (
-            <div className="dash-run-md-preview">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  a: ({ node, ...props }) => <a {...props} target="_blank" rel="noreferrer" />,
-                }}
-              >
-                {content}
-              </ReactMarkdown>
-            </div>
-          ) : (
-            <pre className="dash-run-md-raw">{content}</pre>
-          )}
+        <div className="dash-run-md-modal-mobile-switch" role="tablist" aria-label="Result modal panels">
+          <button type="button" className={activePanel === "logs" ? "active" : ""} onClick={() => setActivePanel("logs")}>
+            <Terminal size={13} />
+            <span>실행 로그</span>
+          </button>
+          <button type="button" className={activePanel === "result" ? "active" : ""} onClick={() => setActivePanel("result")}>
+            <FileText size={13} />
+            <span>분석 결과</span>
+          </button>
         </div>
 
-        <div className="dash-run-md-modal-foot">
-          <div className="dash-run-md-modal-stats">
-            <span>{lineCount} lines</span>
-            <span>|</span>
-            <span>{charCount.toLocaleString()} chars</span>
-          </div>
+        <div className="dash-run-md-modal-body">
+          <section className={`dash-run-md-panel dash-run-md-panel-logs ${activePanel === "logs" ? "is-active" : ""}`}>
+            <div className="dash-run-md-panel-head terminal">
+              <div className="dash-run-md-panel-head-label">
+                <Terminal size={13} />
+                <span>Execution Log</span>
+              </div>
+              <span className="dash-run-md-panel-count">{logCount} entries</span>
+            </div>
+            <div className="dash-run-md-log-body">
+              {executionRows.map((row) => (
+                <div key={row.id} className={`dash-run-md-log-row tone-${row.tone || "event"}`}>
+                  <span className="dash-run-md-log-time">{formatTime(row.ts)}</span>
+                  <span className="dash-run-md-log-message">{normalizeInlineText(row.text)}</span>
+                </div>
+              ))}
+              {executionRows.length === 0 ? <p className="dash-run-md-log-empty">실행 로그가 아직 없어요</p> : null}
+              <div ref={logsEndRef} className="dash-run-md-log-cursor">
+                <ChevronRight size={12} />
+                <span>_</span>
+              </div>
+            </div>
+          </section>
 
-          <div className="dash-run-md-modal-foot-actions">
-            {typeof onOpenInChat === "function" ? (
-              <button
-                type="button"
-                className="dash-run-monitor-secondary-btn"
-                onClick={onOpenInChat}
-                disabled={openInChatPending}
-              >
-                <MessageSquareText size={14} />
-                <span>{openInChatPending ? "여는 중" : "대화 탭에서 열기"}</span>
-              </button>
-            ) : null}
-            <button type="button" className="dash-run-monitor-primary-btn subtle" onClick={onDownload}>
-              <Download size={14} />
-              <span>.md 다운로드</span>
-            </button>
-          </div>
+          <section className={`dash-run-md-panel dash-run-md-panel-result ${activePanel === "result" ? "is-active" : ""}`}>
+            <div className="dash-run-md-panel-head result">
+              <div className="dash-run-md-panel-head-label">
+                <FileText size={13} />
+                <span>{fileName}</span>
+              </div>
+
+              <div className="dash-run-md-modal-result-actions">
+                <div className="dash-run-md-modal-tabs" role="tablist" aria-label="Result preview tabs">
+                  <button
+                    type="button"
+                    className={activeTab === "preview" ? "active" : ""}
+                    onClick={() => setActiveTab("preview")}
+                  >
+                    Preview
+                  </button>
+                  <button
+                    type="button"
+                    className={activeTab === "raw" ? "active" : ""}
+                    onClick={() => setActiveTab("raw")}
+                  >
+                    Raw
+                  </button>
+                </div>
+
+                <button type="button" className="dash-run-md-modal-icon-btn" onClick={onCopy} title="복사">
+                  {copyState === "done" ? <Check size={15} /> : <Copy size={15} />}
+                </button>
+                <button type="button" className="dash-run-md-modal-icon-btn" onClick={onDownload} title="다운로드">
+                  <Download size={15} />
+                </button>
+              </div>
+            </div>
+
+            <div className="dash-run-md-panel-body">
+              {activeTab === "preview" ? (
+                <div className="dash-run-md-preview">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ node, ...props }) => <a {...props} target="_blank" rel="noreferrer" />,
+                    }}
+                  >
+                    {content}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <pre className="dash-run-md-raw">{content}</pre>
+              )}
+            </div>
+
+            <div className="dash-run-md-modal-foot">
+              <div className="dash-run-md-modal-stats">
+                <span>{lineCount} lines</span>
+                <span>|</span>
+                <span>{charCount.toLocaleString()} chars</span>
+              </div>
+
+              <div className="dash-run-md-modal-foot-actions">
+                {typeof onOpenInChat === "function" ? (
+                  <button
+                    type="button"
+                    className="dash-run-monitor-secondary-btn"
+                    onClick={onOpenInChat}
+                    disabled={openInChatPending}
+                  >
+                    <MessageSquareText size={14} />
+                    <span>{openInChatPending ? "여는 중" : "대화 탭에서 열기"}</span>
+                  </button>
+                ) : null}
+                <button type="button" className="dash-run-monitor-primary-btn subtle" onClick={onDownload}>
+                  <Download size={14} />
+                  <span>.md 다운로드</span>
+                </button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -380,7 +522,7 @@ export default function WebResearchRunView({
   requestChangesPending = false,
   openInChatPending = false,
 }) {
-  const phases = Array.isArray(run?.wbs?.phases) ? run.wbs.phases : [];
+  const phases = useMemo(() => ensureWebResearchPhases(run), [run]);
   const [copyState, setCopyState] = useState("idle");
   const [showResult, setShowResult] = useState(false);
 
@@ -473,13 +615,15 @@ export default function WebResearchRunView({
     <section className="dash-run-detail-panel dash-run-workflow-shell">
       <div className="dash-run-monitor">
         <header className="dash-run-monitor-head">
-          <div className="dash-run-monitor-eyebrow">
-            <div />
-            <span>Process Monitor</span>
-            <div />
+          <div className="dash-run-monitor-title-row">
+            <div className="dash-run-monitor-title-icon">
+              <Bot size={18} />
+            </div>
+            <div className="dash-run-monitor-title-copy">
+              <h1>웹 리서치 실행</h1>
+              <p>{phases.length}단계 프로세스 진행</p>
+            </div>
           </div>
-          <h1>웹 리서치 실행 현황</h1>
-          <p>{normalizeInlineText(run?.title || run?.normalizedInput?.topic || "현재 실행 중인 리서치 런")}</p>
         </header>
 
         <div className="dash-run-monitor-progress">
@@ -513,10 +657,11 @@ export default function WebResearchRunView({
             const detailRows =
               phaseRows.length > 0
                 ? phaseRows
-                : phaseState.key === "running" || phaseState.key === "review"
+                : phaseState.key === "running" || phaseState.key === "review" || phaseState.key === "paused"
                   ? executionRows.slice(-4)
                   : [];
-            const showDetail = phaseState.key === "running" || phaseState.key === "review";
+            const isActionableReview = Boolean(reviewTask?.id) && reviewTask.id === task?.id && phaseState.key === "review";
+            const showDetail = phaseState.key === "running" || phaseState.key === "review" || phaseState.key === "paused";
             const showResultButton = hasApprovedResult && phase.id === resultPhaseId;
 
             return (
@@ -543,7 +688,7 @@ export default function WebResearchRunView({
                   <p className="dash-run-monitor-step-description">{phaseState.description}</p>
 
                   <AnimatedDetail isVisible={showDetail}>
-                    {phaseState.key === "review" ? (
+                    {isActionableReview ? (
                       <div className="dash-run-monitor-review-box">
                         <p>{phaseState.description}</p>
                         <div className="dash-run-monitor-review-actions">
@@ -605,6 +750,7 @@ export default function WebResearchRunView({
         <MarkdownViewerModal
           content={resultMarkdown}
           fileName={markdownTitle}
+          executionRows={executionRows}
           onClose={() => setShowResult(false)}
           onCopy={handleCopyResult}
           onDownload={handleDownloadResult}

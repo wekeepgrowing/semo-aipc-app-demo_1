@@ -8,4 +8,4 @@ script = ""
 [[actions]]
 name = "실행됨"
 icon = "run"
-command = "npm run dev:docker-ui"
+command = "npm run dev:docker-down && DO_BUILD=1 npm run dev:docker-ui"

@@ -127,6 +127,7 @@ let resolvedOpenclawBin = null;
 
 const RUNTIME_STATE_DIR = path.join(CONFIG_DIR, "runtime");
 const RUNTIME_USAGE_DIR = path.join(RUNTIME_STATE_DIR, "usage");
+const RUNTIME_ATTACHMENT_DIR = path.join(RUNTIME_STATE_DIR, "attachments");
 const RUNTIME_WORKSPACE_DIR = path.join(CONFIG_DIR, "workspace");
 const SEMO_ASSISTANT_NAME = process.env.SEMO_ASSISTANT_NAME || "Semo AI";
 const SEMO_BRANDING_BLOCK_START = "<!-- semo-branding:start -->";
@@ -137,6 +138,8 @@ const DEFAULT_SKILL_STATE_FILE = path.join(RUNTIME_STATE_DIR, "default-skills-st
 const DEFAULT_SKILL_NPM_PREFIX =
   process.env.OPENCLAW_SKILLS_NPM_PREFIX || path.join(process.env.HOME || process.cwd(), ".npm-global");
 const DEFAULT_SKILL_PROVISION_TIMEOUT_MS = Number(process.env.DEFAULT_SKILL_PROVISION_TIMEOUT_MS || "600000");
+const CONVERSATION_ATTACHMENT_LIMIT = Number(process.env.CONVERSATION_ATTACHMENT_LIMIT || "4");
+const CONVERSATION_ATTACHMENT_MAX_BYTES = Number(process.env.CONVERSATION_ATTACHMENT_MAX_BYTES || String(10 * 1024 * 1024));
 const FIX_STATE_FILE = path.join(RUNTIME_STATE_DIR, "fix-state.json");
 const GOG_RUNTIME_DIR = path.join(RUNTIME_STATE_DIR, "gog");
 const GOG_CREDENTIALS_FILE = path.join(GOG_RUNTIME_DIR, "credentials.json");
@@ -2588,6 +2591,155 @@ function detectConnectedProviderAndMethod() {
   };
 }
 
+function parseRuntimeTimestamp(value) {
+  if (Number.isFinite(Number(value))) return Number(value);
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Date.parse(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function inferProviderIdFromModel(model) {
+  const value = String(model || "").trim().toLowerCase();
+  if (!value) return null;
+  if (value.includes("/")) return value.split("/")[0] || null;
+  if (value.includes("claude")) return "anthropic";
+  if (value.includes("gpt") || value.includes("o1") || value.includes("o3") || value.includes("o4")) return "openai";
+  if (value.includes("gemini")) return "google";
+  if (value.includes("grok")) return "xai";
+  if (value.includes("mistral")) return "mistral";
+  if (value.includes("deepseek")) return "deepseek";
+  if (value.includes("llama")) return "meta";
+  return null;
+}
+
+function normalizeRuntimeModelSnapshot(payload, source) {
+  if (!payload || typeof payload !== "object") return null;
+  const provider = typeof payload.provider === "string" ? payload.provider.trim() : "";
+  const model = typeof payload.model === "string" ? payload.model.trim() : "";
+  const api = typeof payload.api === "string" ? payload.api.trim() : "";
+  const ts =
+    parseRuntimeTimestamp(payload.ts) ||
+    parseRuntimeTimestamp(payload.timestamp) ||
+    parseRuntimeTimestamp(payload.updatedAt) ||
+    null;
+
+  if (!provider && !model && !api) return null;
+  return {
+    provider: provider || inferProviderIdFromModel(model) || null,
+    model: model || null,
+    api: api || null,
+    ts,
+    source,
+  };
+}
+
+async function readRuntimeModelFromGatewayStatus() {
+  if (!gatewayRpcClient || typeof gatewayRpcClient.request !== "function") return null;
+  try {
+    const status = await gatewayRpcClient.request("status", {}, { timeoutMs: 2000 });
+    const recentRows = Array.isArray(status?.sessions?.recent) ? status.sessions.recent : [];
+    const primary = recentRows.find((row) => typeof row?.model === "string" && row.model.trim()) || null;
+    const fallbackModel =
+      (typeof status?.sessions?.defaults?.model === "string" && status.sessions.defaults.model.trim()) || "";
+    const payload = primary
+      ? {
+          provider: inferProviderIdFromModel(primary.model),
+          model: primary.model,
+          ts: primary.updatedAt || Date.now(),
+        }
+      : fallbackModel
+        ? {
+            provider: inferProviderIdFromModel(fallbackModel),
+            model: fallbackModel,
+            ts: Date.now(),
+          }
+        : null;
+    return normalizeRuntimeModelSnapshot(payload, "gateway_status");
+  } catch {
+    return null;
+  }
+}
+
+function readLatestRuntimeModelFromUsageLedger() {
+  try {
+    const usage = runtimeUsageLedger.query({ limit: 30 });
+    const rows = Array.isArray(usage?.rows) ? usage.rows : [];
+    for (const row of rows) {
+      const candidate = normalizeRuntimeModelSnapshot(row, "usage_ledger");
+      if (candidate) return candidate;
+    }
+  } catch {}
+  return null;
+}
+
+function readLatestRuntimeModelFromSessionLogs() {
+  const sessionsDir = path.join(CONFIG_DIR, "agents", "main", "sessions");
+  if (!fs.existsSync(sessionsDir)) return null;
+
+  let files = [];
+  try {
+    files = fs
+      .readdirSync(sessionsDir, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".jsonl"))
+      .map((entry) => {
+        const filePath = path.join(sessionsDir, entry.name);
+        let mtimeMs = 0;
+        try {
+          mtimeMs = fs.statSync(filePath).mtimeMs;
+        } catch {}
+        return { filePath, mtimeMs };
+      })
+      .sort((left, right) => right.mtimeMs - left.mtimeMs)
+      .slice(0, 20);
+  } catch {
+    return null;
+  }
+
+  for (const file of files) {
+    let raw = "";
+    try {
+      raw = fs.readFileSync(file.filePath, "utf8");
+    } catch {
+      continue;
+    }
+    const lines = raw.split(/\r?\n/).filter(Boolean);
+    const floor = Math.max(0, lines.length - 80);
+    for (let index = lines.length - 1; index >= floor; index -= 1) {
+      let parsed;
+      try {
+        parsed = JSON.parse(lines[index]);
+      } catch {
+        continue;
+      }
+      const message = parsed?.message;
+      if (!message || typeof message !== "object") continue;
+      const candidate = normalizeRuntimeModelSnapshot(
+        {
+          provider: message.provider,
+          model: message.model,
+          api: message.api,
+          ts: message.timestamp || parsed.timestamp || parsed.ts,
+        },
+        "session_log"
+      );
+      if (candidate) return candidate;
+    }
+  }
+
+  return null;
+}
+
+async function detectRuntimeModelSnapshot() {
+  return (
+    (await readRuntimeModelFromGatewayStatus()) ||
+    readLatestRuntimeModelFromSessionLogs() ||
+    readLatestRuntimeModelFromUsageLedger() ||
+    null
+  );
+}
+
 function normalizeFeatureStatusRow(row) {
   return normalizeFeatureStatus(row);
 }
@@ -2680,6 +2832,7 @@ function normalizeCreatePayload(payload = {}) {
   const usecaseId = typeof payload.usecaseId === "string" ? payload.usecaseId.trim() : "";
   const createMode = payload?.createMode === "draft" ? "draft" : "message";
   const formInput = payload.formInput && typeof payload.formInput === "object" ? payload.formInput : {};
+  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
   return {
     prompt,
     sourceAction,
@@ -2687,6 +2840,7 @@ function normalizeCreatePayload(payload = {}) {
     usecaseId,
     createMode,
     formInput,
+    attachments,
   };
 }
 
@@ -2704,6 +2858,7 @@ function normalizeConversationPayload(payload = {}) {
       : "";
   const templateAnswers = payload.templateAnswers && typeof payload.templateAnswers === "object" ? payload.templateAnswers : {};
   const followupAnswers = payload.followupAnswers && typeof payload.followupAnswers === "object" ? payload.followupAnswers : {};
+  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
   return {
     prompt,
     text,
@@ -2712,7 +2867,118 @@ function normalizeConversationPayload(payload = {}) {
     selectedUsecaseId,
     templateAnswers,
     followupAnswers,
+    attachments,
   };
+}
+
+function sanitizeAttachmentFilename(filename) {
+  const raw = String(filename || "").trim();
+  const cleaned = raw
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 160);
+  return cleaned || "attachment";
+}
+
+function getRuntimeServerOrigin(req) {
+  const forwardedHost = typeof req?.headers?.["x-forwarded-host"] === "string" ? req.headers["x-forwarded-host"].trim() : "";
+  const host = forwardedHost || (typeof req?.headers?.host === "string" ? req.headers.host.trim() : "");
+  if (host) {
+    const forwardedProto = typeof req?.headers?.["x-forwarded-proto"] === "string" ? req.headers["x-forwarded-proto"].trim() : "";
+    const protocol = forwardedProto || (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "http");
+    return `${protocol}://${host}`;
+  }
+  return `http://127.0.0.1:${PORT}`;
+}
+
+function readAttachmentMeta(attachmentId) {
+  const id = String(attachmentId || "").trim();
+  if (!id) return null;
+  const metaPath = path.join(RUNTIME_ATTACHMENT_DIR, `${id}.json`);
+  if (!fs.existsSync(metaPath)) return null;
+  try {
+    const raw = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+    if (!raw || typeof raw !== "object") return null;
+    return {
+      id,
+      filename: sanitizeAttachmentFilename(raw.filename || "attachment"),
+      mime: String(raw.mime || raw.mimeType || "application/octet-stream").trim() || "application/octet-stream",
+      size: Number.isFinite(Number(raw.size)) ? Number(raw.size) : null,
+      createdAt: Number.isFinite(Number(raw.createdAt)) ? Number(raw.createdAt) : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function persistConversationAttachments(rawAttachments, req) {
+  const source = Array.isArray(rawAttachments) ? rawAttachments.slice(0, CONVERSATION_ATTACHMENT_LIMIT) : [];
+  if (source.length === 0) return [];
+  fs.mkdirSync(RUNTIME_ATTACHMENT_DIR, { recursive: true });
+  const origin = getRuntimeServerOrigin(req);
+  return source.map((item) => {
+    const row = item && typeof item === "object" ? item : {};
+    const existingUrl = typeof row.url === "string" ? row.url.trim() : "";
+    const mimeType = String(row.mime || row.mimeType || mime.lookup(String(row.filename || "")) || "application/octet-stream").trim() || "application/octet-stream";
+    const filename = sanitizeAttachmentFilename(row.filename || row.name || "");
+    const size = Number(row.size);
+
+    if (existingUrl && typeof row.data !== "string" && typeof row.contentBase64 !== "string") {
+      return {
+        id: String(row.id || crypto.randomUUID()),
+        type: "file",
+        url: existingUrl,
+        filename: filename || "attachment",
+        mime: mimeType,
+        size: Number.isFinite(size) && size >= 0 ? size : null,
+      };
+    }
+
+    const base64Value =
+      typeof row.data === "string"
+        ? row.data.trim()
+        : typeof row.contentBase64 === "string"
+          ? row.contentBase64.trim()
+          : "";
+    if (!base64Value) return null;
+
+    const bytes = Buffer.from(base64Value, "base64");
+    if (!bytes.length) return null;
+    if (bytes.length > CONVERSATION_ATTACHMENT_MAX_BYTES) {
+      const error = new Error(`${filename || "attachment"} 파일이 너무 커서 업로드할 수 없어요`);
+      error.code = "attachment_too_large";
+      throw error;
+    }
+
+    const id = String(row.id || crypto.randomUUID());
+    const binPath = path.join(RUNTIME_ATTACHMENT_DIR, `${id}.bin`);
+    const metaPath = path.join(RUNTIME_ATTACHMENT_DIR, `${id}.json`);
+    const normalizedFilename = filename || `${id}.${mime.extension(mimeType) || "bin"}`;
+    fs.writeFileSync(binPath, bytes);
+    fs.writeFileSync(
+      metaPath,
+      JSON.stringify(
+        {
+          id,
+          filename: normalizedFilename,
+          mime: mimeType,
+          size: bytes.length,
+          createdAt: Date.now(),
+        },
+        null,
+        2
+      )
+    );
+    return {
+      id,
+      type: "file",
+      url: `${origin}/api/ui/runtime/attachments/${encodeURIComponent(id)}`,
+      filename: normalizedFilename,
+      mime: mimeType,
+      size: bytes.length,
+    };
+  }).filter(Boolean);
 }
 
 function usageFingerprint(row) {
@@ -5607,6 +5873,32 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  const conversationAttachmentMatch = pathname.match(/^\/api\/ui\/runtime\/attachments\/([^/]+)$/);
+  if (conversationAttachmentMatch && req.method === "GET") {
+    const attachmentId = decodeURIComponent(conversationAttachmentMatch[1]);
+    const meta = readAttachmentMeta(attachmentId);
+    if (!meta) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+      res.end("attachment not found");
+      return;
+    }
+    const filePath = path.join(RUNTIME_ATTACHMENT_DIR, `${meta.id}.bin`);
+    if (!fs.existsSync(filePath)) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+      res.end("attachment not found");
+      return;
+    }
+    const contentDisposition = `inline; filename*=UTF-8''${encodeURIComponent(meta.filename)}`;
+    res.writeHead(200, {
+      "Content-Type": meta.mime,
+      "Content-Length": fs.statSync(filePath).size,
+      "Content-Disposition": contentDisposition,
+      "Cache-Control": "no-store",
+    });
+    fs.createReadStream(filePath).pipe(res);
+    return;
+  }
+
   if (pathname === "/api/ui/runtime/conversations" && req.method === "POST") {
     if (!isConfigured()) {
       return sendJson(res, 409, {
@@ -5628,12 +5920,22 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    const { prompt, title, sourceAction } = normalizeConversationPayload(payload);
-    if (!prompt) {
+    const { prompt, title, sourceAction, attachments } = normalizeConversationPayload(payload);
+    let normalizedAttachments = [];
+    try {
+      normalizedAttachments = persistConversationAttachments(attachments, req);
+    } catch (error) {
+      return sendJson(res, 422, {
+        ok: false,
+        code: error?.code || "invalid_attachment",
+        error: error?.message || "첨부 파일을 처리하지 못했어요",
+      });
+    }
+    if (!prompt && normalizedAttachments.length === 0) {
       return sendJson(res, 422, {
         ok: false,
         code: "invalid_input",
-        error: "prompt is required",
+        error: "prompt or attachments are required",
       });
     }
 
@@ -5641,6 +5943,7 @@ const server = http.createServer(async (req, res) => {
       prompt,
       title,
       sourceAction,
+      attachments: normalizedAttachments,
     });
     if (!created.ok) {
       return sendJson(res, created.code === "invalid_input" ? 422 : 500, created);
@@ -5757,12 +6060,22 @@ const server = http.createServer(async (req, res) => {
     const conversationId = decodeURIComponent(conversationMessageMatch[1]);
     const existing = runtimeStore.getConversationRecord(conversationId);
     const isPlanningConversation = String(existing?.kind || "") === "planning";
-    const { text, templateAnswers, followupAnswers } = normalizeConversationPayload(payload);
-    if (!text && Object.keys(templateAnswers).length === 0 && Object.keys(followupAnswers).length === 0) {
+    const { text, templateAnswers, followupAnswers, attachments } = normalizeConversationPayload(payload);
+    let normalizedAttachments = [];
+    try {
+      normalizedAttachments = persistConversationAttachments(attachments, req);
+    } catch (error) {
+      return sendJson(res, 422, {
+        ok: false,
+        code: error?.code || "invalid_attachment",
+        error: error?.message || "첨부 파일을 처리하지 못했어요",
+      });
+    }
+    if (!text && normalizedAttachments.length === 0 && Object.keys(templateAnswers).length === 0 && Object.keys(followupAnswers).length === 0) {
       return sendJson(res, 422, {
         ok: false,
         code: "invalid_input",
-        error: "text or answers are required",
+        error: "text, attachments, or answers are required",
       });
     }
 
@@ -5774,6 +6087,7 @@ const server = http.createServer(async (req, res) => {
         })
       : await generalConversationRuntime.sendMessage(conversationId, {
           text,
+          attachments: normalizedAttachments,
         });
     if (!replied.ok) {
       return sendJson(res, replied.code === "invalid_input" ? 422 : 500, replied);
@@ -5828,7 +6142,7 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    const { prompt, sourceAction, parentRunId, usecaseId, createMode, formInput } = normalizeCreatePayload(payload);
+    const { prompt, sourceAction, parentRunId, usecaseId, createMode, formInput, attachments } = normalizeCreatePayload(payload);
     const isDraftCreate = createMode === "draft";
     if (isDraftCreate && (parentRunId || usecaseId)) {
       return sendJson(res, 422, {
@@ -5837,11 +6151,22 @@ const server = http.createServer(async (req, res) => {
         error: "draft create does not support parentRunId or usecaseId",
       });
     }
-    if (!isDraftCreate && !prompt) {
+    let normalizedAttachments = [];
+    try {
+      normalizedAttachments = persistConversationAttachments(attachments, req);
+    } catch (error) {
+      return sendJson(res, 422, {
+        ok: false,
+        code: error?.code || "invalid_attachment",
+        error: error?.message || "첨부 파일을 처리하지 못했어요",
+      });
+    }
+
+    if (!isDraftCreate && !prompt && normalizedAttachments.length === 0) {
       return sendJson(res, 422, {
         ok: false,
         code: "invalid_input",
-        error: "prompt is required",
+        error: "prompt or attachments are required",
       });
     }
 
@@ -5903,6 +6228,7 @@ const server = http.createServer(async (req, res) => {
         usecaseId,
         formInput,
         executionFeatures,
+        attachments: normalizedAttachments,
       });
       if (!created.ok) return sendRuntimeError(res, created, 422);
       return sendJson(res, 200, {
@@ -5939,7 +6265,12 @@ const server = http.createServer(async (req, res) => {
       const withUserLog = runtimeStore.appendRunLog(parentRunId, prompt, "user");
       const userLog = withUserLog?.logs?.[withUserLog.logs.length - 1] || null;
 
-      created = await runtimeAdapter.sendMessage({ runId: parentRunId, prompt, sourceAction });
+      created = await runtimeAdapter.sendMessage({
+        runId: parentRunId,
+        prompt,
+        sourceAction,
+        attachments: normalizedAttachments,
+      });
       if (!created.ok) {
         const failedRun =
           runtimeStore.patchRun(parentRunId, {
@@ -6306,6 +6637,7 @@ const server = http.createServer(async (req, res) => {
 
   if (pathname === "/api/ui/runtime/settings" && req.method === "GET") {
     const connected = detectConnectedProviderAndMethod();
+    const runtimeModel = await detectRuntimeModelSnapshot();
     let featureRefresh = null;
     if (connected?.configured) {
       featureRefresh = await refreshRuntimeFeaturesIfPossible();
@@ -6315,6 +6647,7 @@ const server = http.createServer(async (req, res) => {
       ok: true,
       providers: listProviderCatalog(),
       connected,
+      runtimeModel,
       defaults: {
         defaultModel: runtimeStore.getDefaultModel(),
       },

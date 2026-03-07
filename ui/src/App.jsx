@@ -3,6 +3,7 @@ import {
   ArrowUp,
   ArrowRight,
   ChevronLeft,
+  FileText,
   Home,
   Info,
   LoaderCircle,
@@ -13,8 +14,10 @@ import {
   Play,
   Plus,
   Puzzle,
+  RefreshCw,
   Search,
   Settings,
+  X,
 } from "lucide-react";
 import OnboardingModal from "./onboarding/OnboardingModal";
 import SettingsModal from "./components/SettingsModal";
@@ -82,6 +85,10 @@ const SETTINGS_SEARCH_ITEM = {
 
 const HOME_TYPING_PLACEHOLDER = "작업을 할당하거나 무엇이든 질문하세요";
 const HOME_RESEARCH_MODE_STORAGE_KEY = "semo-home-web-research-enabled";
+const CHAT_ATTACHMENT_LIMIT = 4;
+const CHAT_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
+const CHAT_ATTACHMENT_FALLBACK_PROMPT = "첨부 파일을 확인해줘";
+const ATTACHMENT_FEATURE_COMING_SOON_MESSAGE = "첨부 파일 기능은 추후 적용 예정이에요";
 
 const RUN_STATUS_COLOR = {
   queued: "#94a3b8",
@@ -98,6 +105,105 @@ const RUN_STATUS_LABEL = {
   completed: "완료",
   failed: "실패",
 };
+
+function formatAttachmentSize(bytes) {
+  const size = Number(bytes);
+  if (!Number.isFinite(size) || size <= 0) return "";
+  if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(size >= 10 * 1024 * 1024 ? 0 : 1)}MB`;
+  if (size >= 1024) return `${Math.max(1, Math.round(size / 1024))}KB`;
+  return `${size}B`;
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const raw = typeof reader.result === "string" ? reader.result : "";
+      const base64 = raw.includes(",") ? raw.split(",")[1] : raw;
+      if (!base64) {
+        reject(new Error(`${file?.name || "첨부 파일"}을 읽지 못했어요`));
+        return;
+      }
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error(`${file?.name || "첨부 파일"}을 읽지 못했어요`));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function buildUploadAttachments(fileList) {
+  const files = Array.from(fileList || []).filter(Boolean).slice(0, CHAT_ATTACHMENT_LIMIT);
+  const attachments = [];
+  for (const file of files) {
+    if (file.size > CHAT_ATTACHMENT_MAX_BYTES) {
+      throw new Error(`${file.name} 파일은 10MB 이하만 첨부할 수 있어요`);
+    }
+    const data = await readFileAsBase64(file);
+    attachments.push({
+      id: `${file.name}-${file.lastModified}-${file.size}`,
+      type: "file",
+      filename: file.name || "attachment",
+      mime: file.type || "application/octet-stream",
+      size: file.size,
+      data,
+    });
+  }
+  return attachments;
+}
+
+function buildAttachmentPreview(attachment, index = 0) {
+  if (!attachment || typeof attachment !== "object") return null;
+  return {
+    id: String(attachment.id || `attachment-${index}`),
+    filename: String(attachment.filename || attachment.name || "attachment"),
+    size: Number(attachment.size) || 0,
+    mime: String(attachment.mime || attachment.mimeType || "application/octet-stream"),
+    url: typeof attachment.url === "string" ? attachment.url : "",
+  };
+}
+
+function createOptimisticChatMessage({ text = "", attachments = [] }) {
+  return {
+    id: `optimistic-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    role: "user",
+    type: "text",
+    text: String(text || ""),
+    attachments: Array.isArray(attachments) ? attachments.map((item, index) => buildAttachmentPreview(item, index)).filter(Boolean) : [],
+    ts: Date.now(),
+  };
+}
+
+function AttachmentChipList({ attachments = [], onRemove = null }) {
+  if (!Array.isArray(attachments) || attachments.length === 0) return null;
+  return (
+    <div className="dash-attachment-list">
+      {attachments.map((attachment, index) => {
+        const preview = buildAttachmentPreview(attachment, index);
+        if (!preview) return null;
+        return (
+          <div key={preview.id} className="dash-attachment-chip">
+            <div className="dash-attachment-chip-icon">
+              <FileText size={15} />
+            </div>
+            <div className="dash-attachment-chip-copy">
+              <strong>{preview.filename}</strong>
+              <span>{formatAttachmentSize(preview.size)}</span>
+            </div>
+            {typeof onRemove === "function" ? (
+              <button type="button" className="dash-attachment-chip-remove" onClick={() => onRemove(preview.id)} aria-label={`${preview.filename} 제거`}>
+                <X size={14} />
+              </button>
+            ) : preview.url ? (
+              <a href={preview.url} target="_blank" rel="noreferrer" className="dash-attachment-chip-link">
+                보기
+              </a>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function getRunStatusClassName(status) {
   if (status === "queued" || status === "running" || status === "paused" || status === "completed" || status === "failed") {
@@ -899,7 +1005,7 @@ function Sidebar({
 
 function FeatureControlsSection({
   title = "실행 기능",
-  subtitle = "스킬과 별개로 OpenClaw 동작 방식을 바꾸는 토글",
+  subtitle = "스킬과 별개로 Semo AI 동작 방식을 바꾸는 토글",
   className = "",
   featuresLoaded = false,
   features = [],
@@ -919,9 +1025,9 @@ function FeatureControlsSection({
         </div>
       </div>
 
-      {!featuresLoaded ? <p className="dash-page-subtitle dash-page-subtitle-small">OpenClaw 기능 상태를 확인하고 있어요</p> : null}
+      {!featuresLoaded ? <p className="dash-page-subtitle dash-page-subtitle-small">Semo AI 기능 상태를 확인하고 있어요</p> : null}
       {featuresLoaded && !featuresConfigured ? (
-        <p className="dash-page-subtitle dash-page-subtitle-small">OpenClaw를 연결하면 기능 토글을 쓸 수 있어요</p>
+        <p className="dash-page-subtitle dash-page-subtitle-small">Semo AI를 연결하면 기능 토글을 쓸 수 있어요</p>
       ) : null}
 
       <div className="dash-home-feature-list dash-skill-feature-list">
@@ -1021,6 +1127,7 @@ function HomePage({
   onOpenRun,
   researchModeEnabled = false,
   onToggleResearchMode = null,
+  onBeginRouteTransition = null,
 }) {
   const [prompt, setPrompt] = useState("");
   const [showInsights, setShowInsights] = useState(false);
@@ -1028,6 +1135,8 @@ function HomePage({
   const [typedPlaceholder, setTypedPlaceholder] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const attachmentInputRef = useRef(null);
 
   useEffect(() => {
     let timeoutId;
@@ -1057,32 +1166,44 @@ function HomePage({
   }, [home?.recentRuns]);
 
   const handleSubmit = async () => {
-    if (!prompt.trim() || submitting) return;
+    if ((!prompt.trim() && attachments.length === 0) || submitting) return;
 
     setSubmitting(true);
     setSubmitError("");
 
     try {
-      const promptText = prompt.trim();
+      const promptText = prompt.trim() || (attachments.length > 0 ? CHAT_ATTACHMENT_FALLBACK_PROMPT : "");
       setShowInsights(true);
       if (researchModeEnabled && typeof onCreateResearchRun === "function") {
         const result = await onCreateResearchRun({
           prompt: promptText,
           sourceAction: "home_web_research",
+          attachments,
         });
         if (result?.runId && typeof onOpenRun === "function") {
+          if (typeof onBeginRouteTransition === "function") {
+            onBeginRouteTransition("runs");
+            await new Promise((resolve) => window.setTimeout(resolve, 170));
+          }
           onOpenRun(result.runId);
         }
         setPrompt("");
+        setAttachments([]);
       } else {
         const result = await onCreateConversation({
           prompt: promptText,
           sourceAction: "chat",
+          attachments,
         });
         if (result?.conversation?.id && typeof onConversationCreated === "function") {
+          if (typeof onBeginRouteTransition === "function") {
+            onBeginRouteTransition("chat");
+            await new Promise((resolve) => window.setTimeout(resolve, 170));
+          }
           onConversationCreated(result.conversation.id);
         }
         setPrompt("");
+        setAttachments([]);
       }
       await onRefresh();
     } catch (submitErr) {
@@ -1092,6 +1213,18 @@ function HomePage({
     }
   };
 
+  const handleSelectAttachments = async (event) => {
+    const files = event.target.files;
+    if (!files?.length) return;
+    setAttachments([]);
+    setSubmitError(ATTACHMENT_FEATURE_COMING_SOON_MESSAGE);
+    event.target.value = "";
+  };
+
+  const handleRemoveAttachment = (attachmentId) => {
+    setAttachments((prev) => prev.filter((item) => String(item.id) !== String(attachmentId)));
+  };
+
   return (
     <div className={`dash-page dash-home-page dash-content-enter ${showInsights ? "is-expanded" : "is-focused"}`}>
       <section className="dash-home-hero">
@@ -1099,7 +1232,8 @@ function HomePage({
 
         <div className="dash-compose-panel">
           <div className="dash-compose-input-wrap">
-            {!prompt && !composeFocused ? (
+            <AttachmentChipList attachments={attachments} onRemove={handleRemoveAttachment} />
+            {!prompt && !composeFocused && attachments.length === 0 ? (
               <div className="dash-typing-placeholder" aria-hidden="true">
                 {typedPlaceholder}
               </div>
@@ -1119,7 +1253,26 @@ function HomePage({
             />
           </div>
           <div className="dash-compose-footer">
-            <button className="dash-compose-circle plus" type="button" aria-label="첨부 추가">
+            <input
+              ref={attachmentInputRef}
+              className="dash-hidden-file-input"
+              type="file"
+              multiple
+              onChange={handleSelectAttachments}
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+            <button
+              className="dash-compose-circle plus"
+              type="button"
+              aria-label="첨부 추가"
+              onClick={() => {
+                if (submitting) return;
+                setAttachments([]);
+                setSubmitError(ATTACHMENT_FEATURE_COMING_SOON_MESSAGE);
+              }}
+              disabled={submitting}
+            >
               <Plus size={20} />
             </button>
             <button
@@ -1127,7 +1280,7 @@ function HomePage({
               type="button"
               aria-label="요청 보내기"
               onClick={() => void handleSubmit()}
-              disabled={!prompt.trim() || submitting}
+              disabled={(!prompt.trim() && attachments.length === 0) || submitting}
             >
               <ArrowUp size={20} />
             </button>
@@ -1208,8 +1361,11 @@ function ChatPage({
   const [prompt, setPrompt] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [attachments, setAttachments] = useState([]);
+  const [optimisticMessages, setOptimisticMessages] = useState([]);
   const threadRef = useRef(null);
   const threadEndRef = useRef(null);
+  const attachmentInputRef = useRef(null);
   const shouldFollowThreadRef = useRef(true);
   const forceThreadScrollRef = useRef(false);
   const lastConversationIdRef = useRef("");
@@ -1246,6 +1402,7 @@ function ChatPage({
     if (!active) return;
     if (!initialConversationId) {
       setConversationDetail(null);
+      setOptimisticMessages([]);
       return;
     }
     let cancelled = false;
@@ -1267,6 +1424,7 @@ function ChatPage({
     if (!active) return undefined;
     if (initialConversationId === lastConversationIdRef.current) return undefined;
     lastConversationIdRef.current = initialConversationId;
+    setOptimisticMessages([]);
     shouldFollowThreadRef.current = true;
     const raf = window.requestAnimationFrame(() => {
       scrollThreadToBottom("auto");
@@ -1286,6 +1444,7 @@ function ChatPage({
 
   const applyConversationResponse = useCallback(
     async (json) => {
+      setOptimisticMessages([]);
       if (json?.conversation) {
         setConversationDetail(json.conversation);
       }
@@ -1314,15 +1473,24 @@ function ChatPage({
   );
 
   const handleSubmit = async () => {
-    if (!prompt.trim() || submitting) return;
+    if ((!prompt.trim() && attachments.length === 0) || submitting) return;
+    const draftPrompt = prompt;
+    const nextPrompt = prompt.trim() || (attachments.length > 0 ? CHAT_ATTACHMENT_FALLBACK_PROMPT : "");
+    const nextAttachments = attachments;
+    const optimisticMessage = createOptimisticChatMessage({
+      text: nextPrompt,
+      attachments: nextAttachments,
+    });
     forceThreadScrollRef.current = true;
+    setOptimisticMessages((prev) => [...prev, optimisticMessage]);
+    setPrompt("");
+    setAttachments([]);
     setSubmitting(true);
     setSubmitError("");
     try {
-      const nextPrompt = prompt.trim();
       let json;
       if (conversationDetail?.id) {
-        json = await sendConversationPayload({ text: nextPrompt });
+        json = await sendConversationPayload({ text: nextPrompt, attachments: nextAttachments });
       } else {
         const create = typeof onCreateConversation === "function" ? onCreateConversation : async (nextPayload) => {
           return fetchApiJson("/api/ui/runtime/conversations", {
@@ -1334,12 +1502,15 @@ function ChatPage({
         json = await create({
           prompt: nextPrompt,
           sourceAction: "chat",
+          attachments: nextAttachments,
         });
         await applyConversationResponse(json);
       }
-      setPrompt("");
       return json;
     } catch (submitErr) {
+      setOptimisticMessages((prev) => prev.filter((item) => item.id !== optimisticMessage.id));
+      setPrompt(draftPrompt);
+      setAttachments(nextAttachments);
       setSubmitError(submitErr.message || "메시지를 보내지 못했어요");
       return null;
     } finally {
@@ -1351,6 +1522,8 @@ function ChatPage({
     if (typeof onConversationSelected === "function") onConversationSelected("");
     setConversationDetail(null);
     setPrompt("");
+    setAttachments([]);
+    setOptimisticMessages([]);
     setError("");
     setSubmitError("");
     shouldFollowThreadRef.current = true;
@@ -1358,17 +1531,31 @@ function ChatPage({
     lastConversationIdRef.current = "";
   };
 
+  const handleSelectAttachments = async (event) => {
+    const files = event.target.files;
+    if (!files?.length) return;
+    setAttachments([]);
+    setSubmitError(ATTACHMENT_FEATURE_COMING_SOON_MESSAGE);
+    event.target.value = "";
+  };
+
+  const handleRemoveAttachment = (attachmentId) => {
+    setAttachments((prev) => prev.filter((item) => String(item.id) !== String(attachmentId)));
+  };
+
   const activeConversation = conversationDetail || null;
   const messages = Array.isArray(activeConversation?.messages) ? activeConversation.messages : [];
-  const showEmptyState = !activeConversation && !submitting;
+  const renderMessages = [...messages, ...optimisticMessages];
+  const showEmptyState = !activeConversation && optimisticMessages.length === 0 && !submitting;
   const showCommitLoader = activeConversation?.status === "committing";
+  const showReplyPending = submitting && !showCommitLoader;
   const headTitle = activeConversation ? getRunTitle(activeConversation) : "새 대화";
   const headCopy = loading
     ? "대화를 불러오는 중이에요"
     : showCommitLoader
       ? "질문을 정리해서 실행 화면으로 넘기고 있어요"
       : activeConversation
-        ? "OpenClaw와 바로 연결된 일반 대화예요"
+        ? "Semo AI와 바로 연결된 일반 대화예요"
         : "원하는 작업이나 질문을 바로 보내면 일반 대화가 시작돼요";
 
   return (
@@ -1409,24 +1596,60 @@ function ChatPage({
               </article>
             ) : null}
 
-            {messages.map((message) => (
+            {renderMessages.map((message) => (
               <article key={message.id || `${message.ts}-${message.text}`} className={`dash-chat-message ${message.role === "user" ? "user" : message.role === "system" ? "system" : "assistant"}`}>
                 <div className="dash-chat-role">
                   {message.role === "user" ? "나" : message.role === "system" ? "안내" : "Semo"}
                   <span>{toDateText(message.ts)}</span>
                 </div>
                 <p>{message.text || "-"}</p>
+                <AttachmentChipList attachments={message.attachments} />
               </article>
             ))}
+
+            {showReplyPending ? (
+              <article className="dash-chat-message assistant pending" aria-live="polite">
+                <div className="dash-chat-role">
+                  Semo
+                  <span>입력 확인 중</span>
+                </div>
+                <div className="dash-chat-pending-dots" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </article>
+            ) : null}
 
             <div ref={threadEndRef} aria-hidden="true" />
           </div>
 
           <div className="dash-chat-composer">
+            <input
+              ref={attachmentInputRef}
+              className="dash-hidden-file-input"
+              type="file"
+              multiple
+              onChange={handleSelectAttachments}
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+            <button
+              type="button"
+              className="dash-chat-attach"
+              onClick={() => {
+                setAttachments([]);
+                setSubmitError(ATTACHMENT_FEATURE_COMING_SOON_MESSAGE);
+              }}
+              aria-label="첨부 추가"
+              disabled={submitting || showCommitLoader}
+            >
+              <Plus size={18} />
+            </button>
             <textarea
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
-              placeholder={activeConversation ? "메시지를 입력하세요" : "예: 이번 주 회의록 핵심만 요약해줘"}
+              placeholder={attachments.length > 0 ? "" : activeConversation ? "메시지를 입력하세요" : "예: 이번 주 회의록 핵심만 요약해줘"}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
@@ -1434,10 +1657,17 @@ function ChatPage({
                 }
               }}
             />
-            <button type="button" className="dash-chat-send" onClick={() => void handleSubmit()} disabled={!prompt.trim() || submitting || showCommitLoader}>
+            <button
+              type="button"
+              className="dash-chat-send"
+              onClick={() => void handleSubmit()}
+              disabled={(!prompt.trim() && attachments.length === 0) || submitting || showCommitLoader}
+            >
               {submitting ? "보내는 중" : "보내기"}
             </button>
           </div>
+
+          <AttachmentChipList attachments={attachments} onRemove={handleRemoveAttachment} />
 
           {submitError ? <p className="error-text">{submitError}</p> : null}
         </section>
@@ -1809,7 +2039,7 @@ function RunsPage({ active, initialRunId = "", sidebarRuns = [], onOpenResultInC
                 </div>
 
                 <div className="dash-run-feature-box">
-                  <strong>고정된 OpenClaw feature snapshot</strong>
+                  <strong>고정된 Semo AI feature snapshot</strong>
                   <p>{featureSnapshot.length > 0 ? featureSnapshot.join(", ") : "고정된 feature 없음"}</p>
                 </div>
 
@@ -2027,7 +2257,7 @@ function SkillsPage({
   return (
     <div className="dash-page dash-content-enter">
       <h1 className="dash-page-title dash-page-title-small">스킬</h1>
-      <p className="dash-page-subtitle dash-page-subtitle-small">서비스에 기본 포함되거나 사용자가 설치한 실제 OpenClaw 스킬</p>
+      <p className="dash-page-subtitle dash-page-subtitle-small">서비스에 기본 포함되거나 사용자가 설치한 실제 Semo AI 스킬</p>
 
       <article className="dash-skill-banner">
         <div>
@@ -2036,8 +2266,15 @@ function SkillsPage({
             기본 포함 {defaultCount}개, 현재 활성 {enabledCount}개
           </p>
         </div>
-        <button type="button" className="dash-action-btn ai" onClick={onRefresh} disabled={loading}>
-          {loading ? "새로고침 중" : "새로고침"}
+        <button
+          type="button"
+          className="dash-action-btn ai dash-skill-refresh-btn"
+          onClick={onRefresh}
+          disabled={loading}
+          aria-label={loading ? "스킬 새로고침 중" : "스킬 새로고침"}
+          title={loading ? "새로고침 중" : "새로고침"}
+        >
+          <RefreshCw size={16} className={loading ? "dash-spin" : ""} />
         </button>
       </article>
 
@@ -2222,7 +2459,7 @@ function MonitorPage({ metrics, active, onboardingState }) {
       label: "Gateway",
       value: gatewayRunning ? "RUNNING" : "STOPPED",
       tone: gatewayRunning ? "ok" : "off",
-      sub: "OpenClaw 프로세스 상태",
+      sub: "Semo AI 프로세스 상태",
     },
     {
       label: "Last Error",
@@ -2437,9 +2674,35 @@ function DashboardMain({ activeTab, onSelectTab, onboardingState }) {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(HOME_RESEARCH_MODE_STORAGE_KEY) === "1";
   });
+  const [routeTransition, setRouteTransition] = useState({ phase: "idle", target: "" });
   const chatSidebarLoadedRef = useRef(false);
   const runSidebarLoadedRef = useRef(false);
+  const routeTransitionTimersRef = useRef([]);
   const metrics = useMetrics(activeTab === "monitor");
+
+  const clearRouteTransitionTimers = useCallback(() => {
+    routeTransitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    routeTransitionTimersRef.current = [];
+  }, []);
+
+  useEffect(() => clearRouteTransitionTimers, [clearRouteTransitionTimers]);
+
+  const beginRouteTransition = useCallback(
+    (target) => {
+      if (target !== "chat" && target !== "runs") return;
+      clearRouteTransitionTimers();
+      setRouteTransition({ phase: "launch", target });
+      routeTransitionTimersRef.current = [
+        window.setTimeout(() => {
+          setRouteTransition({ phase: "settle", target });
+        }, 170),
+        window.setTimeout(() => {
+          setRouteTransition({ phase: "idle", target: "" });
+        }, 860),
+      ];
+    },
+    [clearRouteTransitionTimers],
+  );
 
   const openSettings = useCallback((tab = "ai", skillId = "") => {
     setSettingsInitialTab(tab);
@@ -2848,7 +3111,17 @@ function DashboardMain({ activeTab, onSelectTab, onboardingState }) {
           onRenameHistoryItem={activeTab === "chat" ? renameConversation : undefined}
         />
 
-        <main className={`dash-main ${activeTab === "chat" ? "chat-mode" : ""}`}>
+        <main
+          className={[
+            "dash-main",
+            activeTab === "chat" ? "chat-mode" : "",
+            routeTransition.phase !== "idle" ? "route-transition" : "",
+            routeTransition.phase !== "idle" ? `route-${routeTransition.phase}` : "",
+            routeTransition.target ? `route-to-${routeTransition.target}` : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
           {activeTab === "home" ? (
             <HomePage
               home={homeData}
@@ -2868,6 +3141,7 @@ function DashboardMain({ activeTab, onSelectTab, onboardingState }) {
               }}
               researchModeEnabled={homeResearchModeEnabled}
               onToggleResearchMode={setHomeResearchModeEnabled}
+              onBeginRouteTransition={beginRouteTransition}
             />
           ) : null}
           {activeTab === "chat" ? (
@@ -2943,7 +3217,7 @@ export default function App() {
     return (
       <div className="page loading-page">
         <div className="loading-block">
-          <p className="eyebrow">SEMO OpenClaw</p>
+          <p className="eyebrow">SEMO AI</p>
           <h1>커스텀 UI 게이트웨이를 불러오는 중</h1>
         </div>
       </div>
