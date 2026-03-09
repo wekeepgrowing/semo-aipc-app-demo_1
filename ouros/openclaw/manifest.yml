@@ -15,6 +15,7 @@ description: >-
 
 developer: Our OS Team
 website: https://openclaw.ai
+icon: https://raw.githubusercontent.com/nanang2017/CasaOS-AppStore/main/Apps/semo-openclaw-demo/icon.png
 dependencies: []
 repo: https://github.com/your-org/openclaw-our-os
 support: https://github.com/your-org/openclaw-our-os/issues

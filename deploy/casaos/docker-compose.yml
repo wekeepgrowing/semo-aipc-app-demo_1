@@ -24,3 +24,16 @@ services:
     volumes:
       - /DATA/AppData/semo-ai/data:/data
       - /DATA/AppData/semo-ai/linuxbrew:/home/linuxbrew
+
+x-casaos:
+  architectures:
+    - amd64
+  main: semo-ai
+  category: AI
+  icon: https://raw.githubusercontent.com/nanang2017/CasaOS-AppStore/main/Apps/semo-openclaw-demo/icon.png
+  port_map: "18789"
+  scheme: http
+  index: /
+  title:
+    en_us: Semo AI
+  store_app_id: semo-ai
