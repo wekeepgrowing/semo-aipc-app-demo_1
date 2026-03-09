@@ -24,7 +24,7 @@
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-aipc-app-demo_1:semo-ai-2026.3.9-amd64
 ```
 
 즉 설치 담당자는 우리에게 아래 값을 받아야 합니다.
@@ -58,7 +58,7 @@ version: "3.8"
 
 services:
   semo-ai:
-    image: ${SEMO_AI_IMAGE:-ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64}
+    image: ${SEMO_AI_IMAGE:-ghcr.io/wekeepgrowing/semo-aipc-app-demo_1:semo-ai-2026.3.9-amd64}
     container_name: semo-ai
     platform: linux/amd64
     init: true
@@ -89,7 +89,7 @@ services:
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-aipc-app-demo_1:semo-ai-2026.3.9-amd64
 ```
 
 ### 3-4. 설치 실행
@@ -200,7 +200,7 @@ tar -czf "semo-ai-backup-$(date +%Y%m%d-%H%M%S).tgz" semo-ai
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.3-amd64
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-aipc-app-demo_1:semo-ai-2026.3.9-amd64
 ```
 
 업데이트 후 확인:
@@ -218,7 +218,7 @@ SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.3-amd64
 예시:
 
 ```env
-SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64
+SEMO_AI_IMAGE=ghcr.io/wekeepgrowing/semo-aipc-app-demo_1:semo-ai-2026.3.9-amd64
 ```
 
 필요하면 AppData도 복원합니다.
@@ -233,4 +233,4 @@ tar -xzf semo-ai-backup-YYYYMMDD-HHMMSS.tgz
 
 아래처럼 전달하면 됩니다.
 
-`CasaOS에서는 deploy/casaos/docker-compose.yml 내용을 Custom Install에 넣고, SEMO_AI_IMAGE를 ghcr.io/wekeepgrowing/semo-ai-app:semo-ai-2026.3.2-amd64 로 설정해서 설치해 주세요. 설치 후에는 http://<장비IP>:18789 로 접속하면 됩니다.`
+`CasaOS에서는 deploy/casaos/docker-compose.yml 내용을 Custom Install에 넣고, SEMO_AI_IMAGE를 ghcr.io/wekeepgrowing/semo-aipc-app-demo_1:semo-ai-2026.3.9-amd64 로 설정해서 설치해 주세요. 설치 후에는 http://<장비IP>:18789 로 접속하면 됩니다.`
