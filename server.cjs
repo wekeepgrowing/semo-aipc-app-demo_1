@@ -408,7 +408,16 @@ function writeEnv(env) {
 }
 
 function writeConfig(config) {
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
+  const tempFile = `${CONFIG_FILE}.tmp-${process.pid}-${Date.now()}`;
+  const payload = JSON.stringify(config, null, 2);
+  try {
+    fs.writeFileSync(tempFile, payload, { mode: 0o600 });
+    fs.renameSync(tempFile, CONFIG_FILE);
+  } finally {
+    if (fs.existsSync(tempFile)) {
+      fs.rmSync(tempFile, { force: true });
+    }
+  }
 }
 
 function normalizeTextFile(content) {
@@ -531,9 +540,16 @@ function isConfigured() {
 
 function reconcileConfig() {
   const config = readConfig();
-  if (!config) return;
+  if (!config) {
+    return {
+      changed: false,
+      gatewayMode: null,
+      gatewayModeSelfHealed: false,
+    };
+  }
 
   let changed = false;
+  let gatewayModeSelfHealed = false;
 
   if (config.wizard && typeof config.wizard === "object") {
     const invalidWizardKeys = ["providerId", "provider", "methodId", "method"];
@@ -545,8 +561,20 @@ function reconcileConfig() {
     }
   }
 
-  if (!config.gateway) config.gateway = {};
-  if (!config.gateway.controlUi) config.gateway.controlUi = {};
+  if (!config.gateway || typeof config.gateway !== "object") {
+    config.gateway = {};
+    changed = true;
+  }
+  if (!config.gateway.controlUi || typeof config.gateway.controlUi !== "object") {
+    config.gateway.controlUi = {};
+    changed = true;
+  }
+  const gatewayMode = typeof config.gateway.mode === "string" ? config.gateway.mode.trim() : "";
+  if (!gatewayMode) {
+    config.gateway.mode = "local";
+    gatewayModeSelfHealed = true;
+    changed = true;
+  }
 
   if (!config.update) config.update = {};
   if (config.update.checkOnStart !== false) {
@@ -612,6 +640,11 @@ function reconcileConfig() {
   }
 
   ensureSemoWorkspaceBranding();
+  return {
+    changed,
+    gatewayMode: String(config?.gateway?.mode || "").trim() || null,
+    gatewayModeSelfHealed,
+  };
 }
 
 function createDefaultSkillState() {
@@ -2617,7 +2650,17 @@ function startOpenclaw() {
   if (openclawProcess || openclawStarting) return;
 
   openclawStarting = true;
-  reconcileConfig();
+  const reconcileResult = reconcileConfig();
+  if (reconcileResult?.gatewayModeSelfHealed) {
+    console.warn('gateway.mode was missing in openclaw.json; applied fallback "local".');
+  }
+  if (!reconcileResult?.gatewayMode) {
+    console.warn('gateway.mode is still missing after reconcile; enforcing fallback "local" before gateway start.');
+    const config = readConfig() || {};
+    if (!config.gateway || typeof config.gateway !== "object") config.gateway = {};
+    config.gateway.mode = "local";
+    writeConfig(config);
+  }
   if (gatewayRpcClient) {
     gatewayRpcClient.start();
   }
