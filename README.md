@@ -179,6 +179,8 @@ docker login ghcr.io
 - 리디렉트 URL 입력 후 멈추지 않도록 서버에서 직접 OAuth 완료 처리
 - 임시 파일 경로를 `/data/.tmp`로 고정
 - 잘못된 onboarding config 때문에 gateway가 죽던 문제 자동 정리
+- `/data/.openclaw/openclaw.json`에 `gateway.mode`가 누락돼도 `local`로 자동 보정
+- 이 보정으로 첫 채팅 시 `gateway closed (1006)`로 끊기던 케이스를 예방
 - `OUR_OS_METRICS_BASE_URL`가 없어도 모니터가 로컬 fallback 메트릭으로 동작
 
 ## 11. 왜 `/DATA/AppData/semo-ai`를 쓰나
