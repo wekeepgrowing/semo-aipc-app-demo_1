@@ -6,7 +6,7 @@ services:
       APP_PORT: 18789
 
   gateway:
-    image: ghcr.io/your-org/openclaw-our-os:2026.3.2@sha256:REPLACE_ME
+    image: ghcr.io/your-org/openclaw-our-os:2026.3.11@sha256:REPLACE_ME
     user: "1000:1000"
     init: true
     restart: on-failure
