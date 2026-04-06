@@ -9,7 +9,7 @@ RUN npm run build
 
 FROM node:22-trixie-slim
 
-ARG OPENCLAW_NPM_VERSION=2026.3.2
+ARG OPENCLAW_NPM_VERSION=2026.4.5
 ARG INSTALL_HOMEBREW_AT_BUILD=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
