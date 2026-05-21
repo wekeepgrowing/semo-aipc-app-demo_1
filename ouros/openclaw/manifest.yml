@@ -3,7 +3,7 @@ id: openclaw
 name: OpenClaw
 tagline: Custom UI-first OpenClaw package for Our OS
 category: ai
-version: "2026.3.2"
+version: "2026.5.19"
 port: 18789
 path: ""
 description: >-
